@@ -60,6 +60,9 @@ class FrameChoresTable(QFrame):
     self.DataHandlerObject.TempEditChore('normal', {'uuid' : self.NormalChoresInfo[pindex]['auuid'], 'choreuuid' : self.DataHandlerObject.SortedChoresList[cindex][0]})
     self.Update()
 
+  def SaveToFile(self):
+    self.DataHandlerObject.TempSaveToFile(self.NormalChoresInfo)
+
 class AssignmentsWidget(QWidget):
   def __init__(self, name, parent, dho):
     super().__init__(parent.TabBox)
@@ -109,6 +112,7 @@ class AssignmentsWidget(QWidget):
     self.Grid.addWidget(bnext, 2, 3, 1, 1, Qt.AlignHCenter)
 
     bsave = QPushButton('Save', self)
+    bsave.clicked.connect(self.FrameTable.SaveToFile)
     self.Grid.addWidget(bsave, 2, 4, 1, 1, Qt.AlignHCenter)
 
     self.Grid.addWidget(QLabel('<b>Manual assignment</b>', self), 3, 0, Qt.AlignHCenter)
@@ -163,7 +167,7 @@ class AssignmentsWidget(QWidget):
     self.ChangeWeek()
 
   def SetSelectedCBox(self, opt, index):
-      self.MASelected[opt] = index
+    self.MASelected[opt] = index
 
   def SetChore(self):
     self.FrameTable.SetChore(*self.MASelected)

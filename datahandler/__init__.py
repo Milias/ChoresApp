@@ -8,6 +8,7 @@ class DataHandler:
   def __init__(self):
     self.ConfigFile = 'config/config.json'
     self.AssignmentsFile = 'config/assignments.json'
+    self.DataTexFile = 'tex/data.tex'
     self.ConfigData = {"chores":{},"participants":{}}
     self.AssignmentsData = {}
 
@@ -112,6 +113,19 @@ class DataHandler:
 
     if cdatestr in self.AssignmentsData:
       self.TempWeekAsignment = self.AssignmentsData[cdatastr]
+
+  def TempSaveToFile(self, cdate, adict):
+    try:
+      tex_file = open(self.DataTexFile, 'w+')
+      tex_str = []
+
+      for i, (uuid, name) in enumerate(self.SortedParticipantsList):
+        tex_str.append('%s & %s & %s & \phantom{---------------} & \\\\[0.25cm] \\hline' % ('Yes' if self.GetItemKey('participants', uuid, 'athome') else 'No', name, self.GetItemKey('chores', self.TempWeekAsignment['normal'][adict[i]['auuid']]['choreuuid'], 'name')))
+
+      tex_file.write('\n'.join(tex_str))
+      tex_file.close()
+    except Exception as e:
+      print('Error writing data.tex: %s' % e)
 
   def UpdateConfigFile(self):
     try:
