@@ -3,12 +3,37 @@ import json
 import datetime
 import uuid
 import copy
+import re
+import random
+
+def tex_escape(text):
+    """
+        :param text: a plain text message
+        :return: the message escaped to appear correctly in LaTeX
+    """
+    conv = {
+        '&': r'\&',
+        '%': r'\%',
+        '$': r'\$',
+        '#': r'\#',
+        '_': r'\_',
+        '{': r'\{',
+        '}': r'\}',
+        '~': r'\textasciitilde{}',
+        '^': r'\^{}',
+        '\\': r'\textbackslash{}',
+        '<': r'\textless',
+        '>': r'\textgreater',
+    }
+    regex = re.compile('|'.join(re.escape(str(key)) for key in sorted(conv.keys(), key = lambda item: - len(item))))
+    return regex.sub(lambda match: conv[match.group()], text)
 
 class DataHandler:
   def __init__(self):
     self.ConfigFile = 'config/config.json'
     self.AssignmentsFile = 'config/assignments.json'
     self.DataTexFile = 'tex/data.tex'
+    self.DateTexFile = 'tex/date.tex'
     self.ConfigData = {"chores":{},"participants":{}}
     self.AssignmentsData = {}
 
@@ -98,13 +123,38 @@ class DataHandler:
   def TempEditChore(self, key, new_data):
     self.TempWeekAsignment[key][new_data['uuid']].update(new_data)
 
+  def TempRemoveCompleted(self):
+    for key in self.TempWeekAsignment['normal']:
+      if self.GetItemKey('chores', self.TempWeekAsignment['normal'][key]['choreuuid'], 'freq') > 1:
+        self.TempWeekAsignment['normal'][key]['choreuuid'] = ''
+
+  def TempAssignNewChores(self, cdate):
+    assigned = [self.TempWeekAsignment[key1][key2]['choreuuid'] for key1 in self.TempWeekAsignment for key2 in self.TempWeekAsignment[key1] if self.TempWeekAsignment[key1][key2]['choreuuid'] != '']
+    new_chores = [cid for cid in self.ConfigData['chores'] if self.GetWeekDifference(cdate, cid) >= self.GetItemKey('chores', cid, 'freq') and not cid in assigned]
+    random.shuffle(new_chores)
+
+    nassigned = 0
+    for key in self.TempWeekAsignment:
+      if len(new_chores) == nassigned: break
+      for uuid in self.TempWeekAsignment[key]:
+        if len(new_chores) == nassigned: break
+        if self.TempWeekAsignment[key][uuid]['choreuuid'] == '':
+          self.TempWeekAsignment[key][uuid]['choreuuid'] = new_chores[nassigned]
+          nassigned += 1
+
   def SaveAssignment(self, cdate):
     cdatestr = '%d-W%d' % cdate.isocalendar()[:2]
 
     if cdatestr in self.AssignmentsData:
-      self.AssignmentsData[cdatastr].update(self.TempWeekAsignment)
+      self.AssignmentsData[cdatestr].update(self.TempWeekAsignment)
     else:
-      self.AssignmentsData[cdatastr] = self.TempWeekAsignment
+      self.AssignmentsData[cdatestr] = copy.deepcopy(self.TempWeekAsignment)
+
+    for key in self.TempWeekAsignment:
+      for uuid in self.TempWeekAsignment[key]:
+        if self.TempWeekAsignment[key][uuid]['choreuuid'] == '': continue
+        #if self.GetWeekDifference(cdate, self.TempWeekAsignment[key][uuid]['choreuuid']) > 0:
+        self.EditItem('chores', self.TempWeekAsignment[key][uuid]['choreuuid'], {'alast' : '%d-W%d' % cdate.isocalendar()[:2]})
 
     self.UpdateAssignmentsFile()
 
@@ -112,20 +162,28 @@ class DataHandler:
     cdatestr = '%d-W%d' % cdate.isocalendar()[:2]
 
     if cdatestr in self.AssignmentsData:
-      self.TempWeekAsignment = self.AssignmentsData[cdatastr]
+      del self.TempWeekAsignment
+      self.TempWeekAsignment = copy.deepcopy(self.AssignmentsData[cdatestr])
+      return True
 
-  def TempSaveToFile(self, cdate, adict):
+    return False
+
+  def TempSaveToTex(self, cdate, adict):
     try:
+      tex_file = open(self.DateTexFile, 'w+')
+      tex_file.write('Week \\textbf{%s} -- From \\textbf{%s} to \\textbf{%s}' % (cdate.isocalendar()[1], datetime.datetime.strptime('%d-W%d-1' % cdate.isocalendar()[:2], "%Y-W%W-%w").date(), datetime.datetime.strptime('%d-W%d-0' % cdate.isocalendar()[:2], "%Y-W%W-%w").date()))
+      tex_file.close()
+
       tex_file = open(self.DataTexFile, 'w+')
       tex_str = []
 
       for i, (uuid, name) in enumerate(self.SortedParticipantsList):
-        tex_str.append('%s & %s & %s & \phantom{---------------} & \\\\[0.25cm] \\hline' % ('Yes' if self.GetItemKey('participants', uuid, 'athome') else 'No', name, self.GetItemKey('chores', self.TempWeekAsignment['normal'][adict[i]['auuid']]['choreuuid'], 'name')))
+        tex_str.append('%s & %s & %s & \phantom{---------------} & \\\\[0.25cm] \\hline' % ('Yes' if self.GetItemKey('participants', uuid, 'athome') else 'No', tex_escape(name), tex_escape(self.GetItemKey('chores', self.TempWeekAsignment['normal'][adict[i]['auuid']]['choreuuid'], 'name'))))
 
       tex_file.write('\n'.join(tex_str))
       tex_file.close()
     except Exception as e:
-      print('Error writing data.tex: %s' % e)
+      print('Error writing to data.tex: %s' % e)
 
   def UpdateConfigFile(self):
     try:

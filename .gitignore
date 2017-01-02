@@ -6,3 +6,5 @@
 *.synctex.gz
 config.json
 assignments.json
+data.tex
+date.tex
