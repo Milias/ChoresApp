@@ -110,10 +110,12 @@ class DataHandler:
 
   def TempAddChore(self, key, cid = '', pid = ''):
     if key == 'normal':
-      new_data = {"timestamp": str(datetime.datetime.now()), "uuid": str(uuid.uuid4()), 'personuuid' : pid, 'choreuuid' : cid, 'datecomp' : '', 'puuidcomp' : ''}
+      new_data = {"timestamp": str(datetime.datetime.now()), "uuid": str(uuid.uuid4()), 'personuuid' : pid, 'choreuuid' : cid, 'datecomp' : [], 'puuidcomp' : []}
       self.TempWeekAsignment['normal'][new_data['uuid']] = new_data
     elif key == 'other' and cid != '':
-      new_data = {"timestamp": str(datetime.datetime.now()), "uuid": str(uuid.uuid4()), 'choreuuid' : cid, 'datecomp' : '', 'puuidcomp' : ''}
+      uuidvar = self.TempCheckChore(cid, ('other',))
+      if uuidvar: return uuidvar
+      new_data = {"timestamp": str(datetime.datetime.now()), "uuid": str(uuid.uuid4()), 'choreuuid' : cid, 'datecomp' : [], 'puuidcomp' : []}
       self.TempWeekAsignment['other'][new_data['uuid']] = new_data
     return new_data['uuid']
 
@@ -122,6 +124,13 @@ class DataHandler:
 
   def TempEditChore(self, key, new_data):
     self.TempWeekAsignment[key][new_data['uuid']].update(new_data)
+
+  def TempCheckChore(self, uuid, keys = ('normal', 'other')):
+    for key in keys:
+      for auuid in self.TempWeekAsignment[key]:
+        if self.TempWeekAsignment[key][auuid]['choreuuid'] == uuid:
+          return auuid
+    return ''
 
   def TempRemoveCompleted(self):
     for key in self.TempWeekAsignment['normal']:
@@ -168,6 +177,19 @@ class DataHandler:
 
     return False
 
+  def LoadAsNewAssignment(self, cdate):
+    cdatestr = '%d-W%d' % cdate.isocalendar()[:2]
+
+    if cdatestr in self.AssignmentsData:
+      self.TempClearChores()
+      auuids = self.TempAddParticipants()
+
+      for uuid in self.AssignmentsData[cdatestr]['normal']:
+        self.TempWeekAsignment['normal'][auuids[self.AssignmentsData[cdatestr]['normal'][uuid]['personuuid']]]['choreuuid'] = self.AssignmentsData[cdatestr]['normal'][uuid]['choreuuid']
+      return True
+
+    return False
+
   def TempSaveToTex(self, cdate, adict):
     try:
       tex_file = open(self.DateTexFile, 'w+')
@@ -179,6 +201,12 @@ class DataHandler:
 
       for i, (uuid, name) in enumerate(self.SortedParticipantsList):
         tex_str.append('%s & %s & %s & \phantom{---------------} & \\\\[0.25cm] \\hline' % ('Yes' if self.GetItemKey('participants', uuid, 'athome') else 'No', tex_escape(name), tex_escape(self.GetItemKey('chores', self.TempWeekAsignment['normal'][adict[i]['auuid']]['choreuuid'], 'name'))))
+
+      for auuid in self.TempWeekAsignment['other']:
+        tex_str.append('& (anyone) & %s & \phantom{---------------} & \\\\[0.15cm] \\hline' %  tex_escape(self.GetItemKey('chores', self.TempWeekAsignment['other'][auuid]['choreuuid'], 'name')))
+
+      for i in range(max(0, 3-len(self.TempWeekAsignment['other']))):
+        tex_str.append('& & & \phantom{---------------} & \\\\[0.15cm] \\hline')
 
       tex_file.write('\n'.join(tex_str))
       tex_file.close()
