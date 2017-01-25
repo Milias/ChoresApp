@@ -9,3 +9,5 @@ assignments.json
 data.tex
 date.tex
 */__pycache__/*
+*/.DS_Store
+*/*.pyc

@@ -25,7 +25,7 @@ class OtherChoreTreeItem(QTreeWidgetItem):
     self.setText(0, self.DataHandlerObject.GetItemKey('chores', self.uuid, 'name'))
 
     if not self.DataHandlerObject.TempCheckChore(self.uuid) and self.DataHandlerObject.GetWeekDifference(self.cdate, self.uuid) >= self.DataHandlerObject.GetItemKey('chores', self.uuid, 'freq'):
-      self.setBackground(0, QBrush(QColor(52, 152, 219, 96)))
+      for i in range(4): self.setBackground(i, QBrush(QColor(52, 152, 219, 96)))
     else:
       self.setBackground(0, QBrush(QColor(255, 255, 255, 255)))
 

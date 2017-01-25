@@ -96,7 +96,7 @@ class FrameChoresTable(QFrame):
 
   def Update(self):
     for i, cinfo in enumerate(self.ChoresInfo['normal']):
-      self.Grid.itemAtPosition(i+1, 0).widget().setText('Yes' if self.DataHandlerObject.GetItemKey('participants', cinfo['personuuid'], 'athome') else 'No')
+      self.Grid.itemAtPosition(i+1, 0).widget().setText('Yes' if self.DataHandlerObject.TempWeekAsignment['normal'][cinfo['auuid']]['home'] else 'No')
 
       self.Grid.itemAtPosition(i+1, 1).widget().setText(self.DataHandlerObject.GetItemKey('participants', cinfo['personuuid'], 'name'))
 

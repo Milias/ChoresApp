@@ -39,13 +39,19 @@ class DataHandler:
 
     self.TempWeekAsignment = {}
 
-    self.NotFoundData = {'chores' : {"freq": -1, "priority": -1, "alast": "0001-W1", "timestamp": "(not found)", "name": "(not found)", "uuid": "(not found)", "atimes": -1}, 'participants' : {"cando": False, "uuid": "(not found)", "timestamp": "(not found)", "name": "(not found)", "athome": False}}
+    self.NotFoundData = {
+      'chores' :
+        {"freq": -1, "priority": -1, "alast": "0001-W1", "timestamp": "(not found)", "name": "(not found)", "uuid": "(not found)", "atimes": -1, "points": 0},
+      'participants' :
+        {"cando": False, "uuid": "(not found)", "timestamp": "(not found)", "name": "(not found)", "athome": False}
+    }
 
     try:
       config_file = open(self.ConfigFile, 'r')
       file_string = config_file.read()
       config_file.close()
       self.ConfigData.update(json.loads(file_string))
+
     except Exception as e:
       print("Error loading configuration file: %s" % e)
       self.UpdateConfigFile()
@@ -110,7 +116,7 @@ class DataHandler:
 
   def TempAddChore(self, key, cid = '', pid = ''):
     if key == 'normal':
-      new_data = {"timestamp": str(datetime.datetime.now()), "uuid": str(uuid.uuid4()), 'personuuid' : pid, 'choreuuid' : cid, 'datecomp' : [], 'puuidcomp' : []}
+      new_data = {"timestamp": str(datetime.datetime.now()), "uuid": str(uuid.uuid4()), 'personuuid' : pid, 'choreuuid' : cid, 'datecomp' : [], 'puuidcomp' : [], 'home' : True}
       self.TempWeekAsignment['normal'][new_data['uuid']] = new_data
     elif key == 'other' and cid != '':
       uuidvar = self.TempCheckChore(cid, ('other',))
@@ -174,7 +180,6 @@ class DataHandler:
       del self.TempWeekAsignment
       self.TempWeekAsignment = copy.deepcopy(self.AssignmentsData[cdatestr])
       return True
-
     return False
 
   def LoadAsNewAssignment(self, cdate):
@@ -186,6 +191,7 @@ class DataHandler:
 
       for uuid in self.AssignmentsData[cdatestr]['normal']:
         self.TempWeekAsignment['normal'][auuids[self.AssignmentsData[cdatestr]['normal'][uuid]['personuuid']]]['choreuuid'] = self.AssignmentsData[cdatestr]['normal'][uuid]['choreuuid']
+        self.TempWeekAsignment['normal'][auuids[self.AssignmentsData[cdatestr]['normal'][uuid]['personuuid']]]['home'] = self.GetItemKey('participants', self.AssignmentsData[cdatestr]['normal'][uuid]['personuuid'], 'athome')
       return True
 
     return False

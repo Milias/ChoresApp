@@ -42,42 +42,59 @@ class ChoresWidget(QWidget):
     brem.clicked.connect(self.RemoveChore)
     self.Grid.addWidget(brem, 10, 1, 1, 1, Qt.AlignLeft)
 
-    self.Grid.addWidget(QLabel("<b>Information</b>", self), 0, 2, 1, 2, Qt.AlignHCenter)
+    nrow = 0
+    self.Grid.addWidget(QLabel("<b>Information</b>", self), nrow, 2, 1, 2, Qt.AlignHCenter)
+    nrow += 1
 
-    self.Grid.addWidget(QLabel("Name:", self), 1, 2, 1, 1, Qt.AlignRight)
+    self.Grid.addWidget(QLabel("Name:", self), nrow, 2, 1, 1, Qt.AlignRight)
     self.LineEditName = QLineEdit(self)
-    self.Grid.addWidget(self.LineEditName, 1, 3, 1, 1, Qt.AlignLeft)
+    self.Grid.addWidget(self.LineEditName, nrow, 3, 1, 1, Qt.AlignLeft)
+    nrow += 1
 
-    self.Grid.addWidget(QLabel("Frequency:", self), 2, 2, 1, 1, Qt.AlignRight)
+    self.Grid.addWidget(QLabel("Frequency:", self), nrow, 2, 1, 1, Qt.AlignRight)
     self.LineEditFreq = QLineEdit(self)
-    self.Grid.addWidget(self.LineEditFreq, 2, 3, 1, 1, Qt.AlignLeft)
+    self.Grid.addWidget(self.LineEditFreq, nrow, 3, 1, 1, Qt.AlignLeft)
+    nrow += 1
 
-    self.Grid.addWidget(QLabel("Priority:", self), 3, 2, 1, 1, Qt.AlignRight)
+    self.Grid.addWidget(QLabel("Priority:", self), nrow, 2, 1, 1, Qt.AlignRight)
     self.LineEditPrio = QLineEdit(self)
-    self.Grid.addWidget(self.LineEditPrio, 3, 3, 1, 1, Qt.AlignLeft)
+    self.Grid.addWidget(self.LineEditPrio, nrow, 3, 1, 1, Qt.AlignLeft)
+    nrow += 1
 
-    self.Grid.addWidget(QLabel("Last assigned:", self), 4, 2, 1, 1, Qt.AlignRight)
+    self.Grid.addWidget(QLabel("Last assigned:", self), nrow, 2, 1, 1, Qt.AlignRight)
     self.LineEditLastA = QLineEdit(self)
     self.LineEditLastA.setValidator(QRegExpValidator(QRegExp("\d{1,4}\-W\d{1,2}"), self))
-    self.Grid.addWidget(self.LineEditLastA, 4, 3, 1, 1, Qt.AlignLeft)
+    self.Grid.addWidget(self.LineEditLastA, nrow, 3, 1, 1, Qt.AlignLeft)
+    nrow += 1
 
-    self.Grid.addWidget(QLabel("<b>Extra information</b>", self), 5, 2, 1, 2, Qt.AlignHCenter)
+    self.Grid.addWidget(QLabel("Points:", self), nrow, 2, 1, 1, Qt.AlignRight)
+    self.LineEditPoints = QLineEdit(self)
+    self.LineEditPoints.setValidator(QIntValidator())
+    self.Grid.addWidget(self.LineEditPoints, nrow, 3, 1, 1, Qt.AlignLeft)
+    nrow += 1
 
-    self.Grid.addWidget(QLabel("Creation date:", self), 6, 2, 1, 1, Qt.AlignRight)
+    self.Grid.addWidget(QLabel("<b>Extra information</b>", self), nrow, 2, 1, 2, Qt.AlignHCenter)
+    nrow += 1
+
+    self.Grid.addWidget(QLabel("Creation date:", self), nrow, 2, 1, 1, Qt.AlignRight)
     self.LabelCreation = QLabel("(not yet set)", self)
-    self.Grid.addWidget(self.LabelCreation, 6, 3, 1, 1, Qt.AlignLeft)
+    self.Grid.addWidget(self.LabelCreation, nrow, 3, 1, 1, Qt.AlignLeft)
+    nrow += 1
 
-    self.Grid.addWidget(QLabel("UUID:", self), 7, 2, 1, 1, Qt.AlignRight)
+    self.Grid.addWidget(QLabel("UUID:", self), nrow, 2, 1, 1, Qt.AlignRight)
     self.LabelUUID = QLabel("(not yet set)", self)
-    self.Grid.addWidget(self.LabelUUID, 7, 3, 1, 1, Qt.AlignLeft)
+    self.Grid.addWidget(self.LabelUUID, nrow, 3, 1, 1, Qt.AlignLeft)
+    nrow += 1
 
-    self.Grid.addWidget(QLabel("Times assigned:", self), 8, 2, 1, 1, Qt.AlignRight)
+    self.Grid.addWidget(QLabel("Times assigned:", self), nrow, 2, 1, 1, Qt.AlignRight)
     self.LabelTimes = QLabel("(not yet set)", self)
-    self.Grid.addWidget(self.LabelTimes, 8, 3, 1, 1, Qt.AlignLeft)
+    self.Grid.addWidget(self.LabelTimes, nrow, 3, 1, 1, Qt.AlignLeft)
+    nrow += 1
 
     bsave = QPushButton("Save")
     bsave.clicked.connect(self.SaveChore)
-    self.Grid.addWidget(bsave, 10, 3, 1, 1, Qt.AlignLeft)
+    self.Grid.addWidget(bsave, nrow, 3, 1, 1, Qt.AlignLeft)
+    nrow += 1
 
     dummy = QWidget()
     dummy.setSizePolicy(QSizePolicy.Expanding, QSizePolicy.Expanding)
@@ -94,6 +111,7 @@ class ChoresWidget(QWidget):
     self.LineEditFreq.setText(str(item.ChoreData["freq"]))
     self.LineEditPrio.setText(str(item.ChoreData["priority"]))
     self.LineEditLastA.setText(str(item.ChoreData["alast"]))
+    self.LineEditPoints.setText(str(item.ChoreData["points"]))
     self.LabelCreation.setText(item.ChoreData["timestamp"])
     self.LabelUUID.setText(item.ChoreData["uuid"])
     self.LabelTimes.setText(str(item.ChoreData["atimes"]))
@@ -104,6 +122,7 @@ class ChoresWidget(QWidget):
     self.LineEditFreq.setText("")
     self.LineEditPrio.setText("")
     self.LineEditLastA.setText("0001-W1")
+    self.LineEditPoints.setText("100")
     self.LabelCreation.setText("(not yet set)")
     self.LabelUUID.setText("(not yet set)")
     self.LabelTimes.setText("(not yet set)")
@@ -111,9 +130,9 @@ class ChoresWidget(QWidget):
 
   def SaveChore(self):
     if (self.ListWidget.currentItem()):
-      self.DataHandlerObject.EditItem("chores", self.ListWidget.currentItem().ChoreData['uuid'], {"name": self.LineEditName.text(), "freq": int(self.LineEditFreq.text()), "priority": int(self.LineEditPrio.text()), "alast": self.LineEditLastA.text()})
+      self.DataHandlerObject.EditItem("chores", self.ListWidget.currentItem().ChoreData['uuid'], {"name": self.LineEditName.text(), "freq": int(self.LineEditFreq.text()), "priority": int(self.LineEditPrio.text()), "alast": self.LineEditLastA.text(), "points": int(self.LineEditPoints.text())})
     else:
-      self.DataHandlerObject.AddNewItem("chores", {"name": self.LineEditName.text(), "freq": int(self.LineEditFreq.text()), "priority": int(self.LineEditPrio.text()), "atimes" : 0, "alast": self.LineEditLastA.text()})
+      self.DataHandlerObject.AddNewItem("chores", {"name": self.LineEditName.text(), "freq": int(self.LineEditFreq.text()), "priority": int(self.LineEditPrio.text()), "atimes" : 0, "alast": self.LineEditLastA.text(), "points": int(self.LineEditPoints.text())})
     self.LoadChores()
 
   def RemoveChore(self):
