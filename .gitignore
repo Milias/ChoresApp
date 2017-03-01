@@ -4,10 +4,15 @@
 *.log
 *.pdf
 *.synctex.gz
+
 config.json
 assignments.json
+billing.json
+
 data.tex
 date.tex
+
 */__pycache__/*
-*/.DS_Store
 */*.pyc
+
+*.DS_Store

@@ -34,47 +34,66 @@ class ParticipantsWidget(QWidget):
 
     self.Grid.addWidget(self.ListWidget, 1, 0, 7, 2, Qt.AlignHCenter)
 
-    badd = QPushButton("Add")
-    badd.clicked.connect(self.AddNewParticipant)
-    self.Grid.addWidget(badd, 8, 0, 1, 1, Qt.AlignRight)
+    nrow = 0
+    self.Grid.addWidget(QLabel("<b>Information</b>", self), nrow, 2, 1, 2, Qt.AlignHCenter)
+    nrow += 1
 
-    brem = QPushButton("Remove")
-    brem.clicked.connect(self.RemoveParticipant)
-    self.Grid.addWidget(brem, 8, 1, 1, 1, Qt.AlignLeft)
-
-    self.Grid.addWidget(QLabel("<b>Information</b>", self), 0, 2, 1, 2, Qt.AlignHCenter)
-
-    self.Grid.addWidget(QLabel("Name:", self), 1, 2, 1, 1, Qt.AlignRight)
+    self.Grid.addWidget(QLabel("Name:", self), nrow, 2, 1, 1, Qt.AlignRight)
     self.LineEditName = QLineEdit(self)
-    self.Grid.addWidget(self.LineEditName, 1, 3, 1, 1, Qt.AlignLeft)
+    self.Grid.addWidget(self.LineEditName, nrow, 3, 1, 1, Qt.AlignLeft)
+    nrow += 1
 
-    self.Grid.addWidget(QLabel("At home:", self), 2, 2, 1, 1, Qt.AlignRight)
+    self.Grid.addWidget(QLabel("At home:", self), nrow, 2, 1, 1, Qt.AlignRight)
     self.CheckBoxHome = QCheckBox(self)
     self.CheckBoxHome.setChecked(True)
-    self.Grid.addWidget(self.CheckBoxHome, 2, 3, 1, 1, Qt.AlignLeft)
+    self.Grid.addWidget(self.CheckBoxHome, nrow, 3, 1, 1, Qt.AlignLeft)
+    nrow += 1
 
-    self.Grid.addWidget(QLabel("Can do chores:", self), 3, 2, 1, 1, Qt.AlignRight)
+    self.Grid.addWidget(QLabel("Can do chores:", self), nrow, 2, 1, 1, Qt.AlignRight)
     self.CheckBoxCanDo = QCheckBox(self)
     self.CheckBoxCanDo.setChecked(True)
-    self.Grid.addWidget(self.CheckBoxCanDo, 3, 3, 1, 1, Qt.AlignLeft)
+    self.Grid.addWidget(self.CheckBoxCanDo, nrow, 3, 1, 1, Qt.AlignLeft)
+    nrow += 1
 
-    self.Grid.addWidget(QLabel("<b>Extra information</b>", self), 4, 2, 1, 2, Qt.AlignHCenter)
+    self.Grid.addWidget(QLabel("<b>Billing information</b>", self), nrow, 2, 1, 2, Qt.AlignHCenter)
+    nrow += 1
 
-    self.Grid.addWidget(QLabel("Creation date:", self), 5, 2, 1, 1, Qt.AlignRight)
+    self.Grid.addWidget(QLabel("Debt per week:", self), nrow, 2, 1, 1, Qt.AlignRight)
+    self.LineEditWeekDebt = QLineEdit(self)
+    self.LineEditWeekDebt.setValidator(QIntValidator())
+    self.Grid.addWidget(self.LineEditWeekDebt, nrow, 3, 1, 1, Qt.AlignLeft)
+    nrow += 1
+
+    self.Grid.addWidget(QLabel("<b>Extra information</b>", self), nrow, 2, 1, 2, Qt.AlignHCenter)
+    nrow += 1
+
+    self.Grid.addWidget(QLabel("Creation date:", self), nrow, 2, 1, 1, Qt.AlignRight)
     self.LabelCreation = QLabel("(not yet set)", self)
-    self.Grid.addWidget(self.LabelCreation, 5, 3, 1, 1, Qt.AlignLeft)
+    self.Grid.addWidget(self.LabelCreation, nrow, 3, 1, 1, Qt.AlignLeft)
+    nrow += 1
 
-    self.Grid.addWidget(QLabel("UUID:", self), 6, 2, 1, 1, Qt.AlignRight)
+    self.Grid.addWidget(QLabel("UUID:", self), nrow, 2, 1, 1, Qt.AlignRight)
     self.LabelUUID = QLabel("(not yet set)", self)
-    self.Grid.addWidget(self.LabelUUID, 6, 3, 1, 1, Qt.AlignLeft)
-
-    bsave = QPushButton("Save")
-    bsave.clicked.connect(self.SaveParticipant)
-    self.Grid.addWidget(bsave, 8, 3, 1, 1, Qt.AlignLeft)
+    self.Grid.addWidget(self.LabelUUID, nrow, 3, 1, 1, Qt.AlignLeft)
+    nrow += 1
 
     dummy = QWidget()
     dummy.setSizePolicy(QSizePolicy.Expanding, QSizePolicy.Expanding)
-    self.Grid.addWidget(dummy,7,2,1,2)
+    self.Grid.addWidget(dummy,nrow,2,1,2)
+    nrow += 1
+
+    bsave = QPushButton("Save")
+    bsave.clicked.connect(self.SaveParticipant)
+    self.Grid.addWidget(bsave, nrow, 3, 1, 1, Qt.AlignLeft)
+
+    badd = QPushButton("Add")
+    badd.clicked.connect(self.AddNewParticipant)
+    self.Grid.addWidget(badd, nrow, 0, 1, 1, Qt.AlignRight)
+
+    brem = QPushButton("Remove")
+    brem.clicked.connect(self.RemoveParticipant)
+    self.Grid.addWidget(brem, nrow, 1, 1, 1, Qt.AlignLeft)
+    nrow += 1
 
   def LoadParticipants(self):
     self.ListWidget.clear()

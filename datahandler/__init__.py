@@ -7,10 +7,10 @@ import re
 import random
 
 def tex_escape(text):
-    """
+    '''
         :param text: a plain text message
         :return: the message escaped to appear correctly in LaTeX
-    """
+    '''
     conv = {
         '&': r'\&',
         '%': r'\%',
@@ -32,18 +32,21 @@ class DataHandler:
   def __init__(self):
     self.ConfigFile = 'config/config.json'
     self.AssignmentsFile = 'config/assignments.json'
+    self.BillingFile = 'config/billing.json'
     self.DataTexFile = 'tex/data.tex'
     self.DateTexFile = 'tex/date.tex'
-    self.ConfigData = {"chores":{},"participants":{}}
+
+    self.ConfigData = {'chores':{},'participants':{}}
     self.AssignmentsData = {}
+    self.BillingData = { 'config': {}, 'data': {} }
 
     self.TempWeekAsignment = {}
 
     self.NotFoundData = {
       'chores' :
-        {"freq": -1, "priority": -1, "alast": "0001-W1", "timestamp": "(not found)", "name": "(not found)", "uuid": "(not found)", "atimes": -1, "points": 0},
+        {'freq': -1, 'priority': -1, 'alast': '0001-W1', 'timestamp': '(not found)', 'name': '(not found)', 'uuid': '(not found)', 'atimes': -1, 'points': 0},
       'participants' :
-        {"cando": False, "uuid": "(not found)", "timestamp": "(not found)", "name": "(not found)", "athome": False}
+        {'cando': False, 'uuid': '(not found)', 'timestamp': '(not found)', 'name': '(not found)', 'athome': False}
     }
 
     try:
@@ -53,7 +56,7 @@ class DataHandler:
       self.ConfigData.update(json.loads(file_string))
 
     except Exception as e:
-      print("Error loading configuration file: %s" % e)
+      print('Error loading configuration file: %s' % e)
       self.UpdateConfigFile()
 
     self.GenerateSortedLists()
@@ -64,8 +67,17 @@ class DataHandler:
       assignments_file.close()
       self.AssignmentsData.update(json.loads(file_string))
     except Exception as e:
-      print("Error loading assignments file: %s" % e)
+      print('Error loading assignments file: %s' % e)
       self.UpdateAssignmentsFile()
+
+    try:
+      billing_file = open(self.BillingFile, 'r')
+      file_string = billing_file.read()
+      billing_file.close()
+      self.BillingData.update(json.loads(file_string))
+    except Exception as e:
+      print('Error loading assignments file: %s' % e)
+      self.UpdateBillingFile()
 
   def GenerateSortedLists(self):
     self.SortedParticipantsList = [(pid, self.GetItemKey('participants', pid, 'name')) for pid in self.ConfigData['participants']]
@@ -74,7 +86,7 @@ class DataHandler:
     self.SortedChoresList.sort(key=lambda e: e[1].lower())
 
   def AddNewItem(self, key, new_data):
-    new_data.update({"timestamp": str(datetime.datetime.now()), "uuid": str(uuid.uuid4())})
+    new_data.update({'timestamp': str(datetime.datetime.now()), 'uuid': str(uuid.uuid4())})
     self.ConfigData[key][new_data['uuid']] = new_data
     self.GenerateSortedLists()
     self.UpdateConfigFile()
@@ -102,7 +114,7 @@ class DataHandler:
       return self.NotFoundData[key][itemkey]
 
   def GetWeekDifference(self, cdate, choreuuid):
-    return int((cdate - datetime.datetime.strptime(self.GetItemKey('chores', choreuuid, 'alast') + '-1', "%Y-W%W-%w").date()).days / 7)
+    return int((cdate - datetime.datetime.strptime(self.GetItemKey('chores', choreuuid, 'alast') + '-1', '%Y-W%W-%w').date()).days / 7)
 
   def TempClearChores(self):
     del self.TempWeekAsignment
@@ -116,12 +128,12 @@ class DataHandler:
 
   def TempAddChore(self, key, cid = '', pid = ''):
     if key == 'normal':
-      new_data = {"timestamp": str(datetime.datetime.now()), "uuid": str(uuid.uuid4()), 'personuuid' : pid, 'choreuuid' : cid, 'datecomp' : [], 'puuidcomp' : [], 'home' : True}
+      new_data = {'timestamp': str(datetime.datetime.now()), 'uuid': str(uuid.uuid4()), 'personuuid' : pid, 'choreuuid' : cid, 'datecomp' : [], 'puuidcomp' : [], 'home' : True}
       self.TempWeekAsignment['normal'][new_data['uuid']] = new_data
     elif key == 'other' and cid != '':
       uuidvar = self.TempCheckChore(cid, ('other',))
       if uuidvar: return uuidvar
-      new_data = {"timestamp": str(datetime.datetime.now()), "uuid": str(uuid.uuid4()), 'choreuuid' : cid, 'datecomp' : [], 'puuidcomp' : []}
+      new_data = {'timestamp': str(datetime.datetime.now()), 'uuid': str(uuid.uuid4()), 'choreuuid' : cid, 'datecomp' : [], 'puuidcomp' : []}
       self.TempWeekAsignment['other'][new_data['uuid']] = new_data
     return new_data['uuid']
 
@@ -199,7 +211,7 @@ class DataHandler:
   def TempSaveToTex(self, cdate, adict):
     try:
       tex_file = open(self.DateTexFile, 'w+')
-      tex_file.write('Week \\textbf{%s} -- From \\textbf{%s} to \\textbf{%s}' % (cdate.isocalendar()[1], datetime.datetime.strptime('%d-W%d-1' % cdate.isocalendar()[:2], "%Y-W%W-%w").date(), datetime.datetime.strptime('%d-W%d-0' % cdate.isocalendar()[:2], "%Y-W%W-%w").date()))
+      tex_file.write('Week \\textbf{%s} -- From \\textbf{%s} to \\textbf{%s}' % (cdate.isocalendar()[1], datetime.datetime.strptime('%d-W%d-1' % cdate.isocalendar()[:2], '%Y-W%W-%w').date(), datetime.datetime.strptime('%d-W%d-0' % cdate.isocalendar()[:2], '%Y-W%W-%w').date()))
       tex_file.close()
 
       tex_file = open(self.DataTexFile, 'w+')
@@ -225,7 +237,7 @@ class DataHandler:
       json.dump(self.ConfigData, config_file)
       config_file.close()
     except Exception as e:
-      print("Error saving configuration file: %s" % e)
+      print('Error saving configuration file: %s' % e)
 
   def UpdateAssignmentsFile(self):
     try:
@@ -233,4 +245,12 @@ class DataHandler:
       json.dump(self.AssignmentsData, assignments_file)
       assignments_file.close()
     except Exception as e:
-      print("Error saving assignments file: %s" % e)
+      print('Error saving assignments file: %s' % e)
+
+  def UpdateBillingFile(self):
+    try:
+      billing_file = open(self.BillingFile, 'w+')
+      json.dump(self.BillingData, billing_file)
+      assignments_file.close()
+    except Exception as e:
+      print('Error saving assignments file: %s' % e)

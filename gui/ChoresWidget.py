@@ -122,7 +122,7 @@ class ChoresWidget(QWidget):
     self.LineEditFreq.setText("")
     self.LineEditPrio.setText("")
     self.LineEditLastA.setText("0001-W1")
-    self.LineEditPoints.setText("100")
+    self.LineEditPoints.setText("250")
     self.LabelCreation.setText("(not yet set)")
     self.LabelUUID.setText("(not yet set)")
     self.LabelTimes.setText("(not yet set)")
