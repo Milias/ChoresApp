@@ -1,0 +1,78 @@
+<?xml version="1.0" encoding="UTF-8" standalone="no"?>
+<svg
+   xmlns:dc="http://purl.org/dc/elements/1.1/"
+   xmlns:cc="http://creativecommons.org/ns#"
+   xmlns:rdf="http://www.w3.org/1999/02/22-rdf-syntax-ns#"
+   xmlns:svg="http://www.w3.org/2000/svg"
+   xmlns="http://www.w3.org/2000/svg"
+   xmlns:sodipodi="http://sodipodi.sourceforge.net/DTD/sodipodi-0.dtd"
+   xmlns:inkscape="http://www.inkscape.org/namespaces/inkscape"
+   data-name="Layer 1"
+   viewBox="0 0 100 125"
+   x="0px"
+   y="0px"
+   version="1.1"
+   id="svg20"
+   sodipodi:docname="noun_882848_cc.svg"
+   inkscape:version="0.92.1 r">
+  <metadata
+     id="metadata24">
+    <rdf:RDF>
+      <cc:Work
+         rdf:about="">
+        <dc:format>image/svg+xml</dc:format>
+        <dc:type
+           rdf:resource="http://purl.org/dc/dcmitype/StillImage" />
+      </cc:Work>
+    </rdf:RDF>
+  </metadata>
+  <sodipodi:namedview
+     pagecolor="#ffffff"
+     bordercolor="#666666"
+     borderopacity="1"
+     objecttolerance="10"
+     gridtolerance="10"
+     guidetolerance="10"
+     inkscape:pageopacity="0"
+     inkscape:pageshadow="2"
+     inkscape:window-width="2560"
+     inkscape:window-height="1440"
+     id="namedview22"
+     showgrid="false"
+     inkscape:zoom="10.680141"
+     inkscape:cx="36.887038"
+     inkscape:cy="58.992601"
+     inkscape:window-x="2560"
+     inkscape:window-y="0"
+     inkscape:window-maximized="1"
+     inkscape:current-layer="svg20" />
+  <defs
+     id="defs4">
+    <style
+       id="style2">.cls-1{fill:none;stroke:#000;stroke-linecap:round;stroke-linejoin:round;stroke-width:3px;}</style>
+  </defs>
+  <title
+     id="title6">Artboard 22</title>
+  <path
+     class="cls-1"
+     d="M59.45,68.44l-11.85,7,.81-13.73,24.83-40.6a.93.93,0,0,1,1.28-.31L84,26.56a.93.93,0,0,1,.31,1.28Z"
+     id="path8" />
+  <line
+     class="cls-1"
+     x1="69.28"
+     y1="27.55"
+     x2="80.33"
+     y2="34.31"
+     id="line10" />
+  <line
+     class="cls-1"
+     x1="47.89"
+     y1="70.44"
+     x2="51.92"
+     y2="72.9"
+     id="line12" />
+  <polyline
+     class="cls-1"
+     points="74.8 53.15 74.8 81.3 18.5 81.3 18.5 25 63.03 25"
+     id="polyline14" />
+</svg>
