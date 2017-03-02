@@ -1,3 +1,5 @@
+# Latex files
+
 *.aux
 *.fdb_latexmk
 *.fls
@@ -5,14 +7,15 @@
 *.pdf
 *.synctex.gz
 
-config.json
-assignments.json
-billing.json
-
 data.tex
 date.tex
 
+# Config files
+*.json
+
+# Python files
 */__pycache__/*
 */*.pyc
 
+# MacOS files
 *.DS_Store

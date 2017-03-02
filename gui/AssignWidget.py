@@ -47,11 +47,11 @@ class FrameChoresTable(QFrame):
     self.Reset()
 
   def Init(self):
-    self.Grid.addWidget(QLabel("<b>Is Home?</b>", self), 0, 0, Qt.AlignHCenter)
-    self.Grid.addWidget(QLabel("<b>Name</b>", self), 0, 1, Qt.AlignHCenter)
-    self.Grid.addWidget(QLabel("<b>Chore</b>", self), 0, 2, Qt.AlignHCenter)
-    self.Grid.addWidget(QLabel("<b>Date completion</b>", self), 0, 3, Qt.AlignHCenter)
-    self.Grid.addWidget(QLabel("<b>Name completion</b>", self), 0, 4, Qt.AlignHCenter)
+    self.Grid.addWidget(QLabel('<b>Is Home?</b>', self), 0, 0, Qt.AlignHCenter)
+    self.Grid.addWidget(QLabel('<b>Name</b>', self), 0, 1, Qt.AlignHCenter)
+    self.Grid.addWidget(QLabel('<b>Chore</b>', self), 0, 2, Qt.AlignHCenter)
+    self.Grid.addWidget(QLabel('<b>Date completion</b>', self), 0, 3, Qt.AlignHCenter)
+    self.Grid.addWidget(QLabel('<b>Name completion</b>', self), 0, 4, Qt.AlignHCenter)
 
     for i in range(len(self.DataHandlerObject.ConfigData['participants'])):
       for j in range(5):
@@ -169,13 +169,13 @@ class AssignmentsWidget(QWidget):
     self.Init()
 
   def Init(self):
-    self.Grid.addWidget(QLabel("<b>Year:</b>", self), 0, 0, 1, 1, Qt.AlignRight)
+    self.Grid.addWidget(QLabel('<b>Year:</b>', self), 0, 0, 1, 1, Qt.AlignRight)
     self.LineEditCurrentYear = QLineEdit(self)
     self.LineEditCurrentYear.setAlignment(Qt.AlignHCenter)
     self.LineEditCurrentYear.setValidator(QIntValidator())
     self.Grid.addWidget(self.LineEditCurrentYear, 0, 1, 1, 1, Qt.AlignLeft)
 
-    self.Grid.addWidget(QLabel("<b>Week:</b>", self), 0, 2, 1, 1, Qt.AlignRight)
+    self.Grid.addWidget(QLabel('<b>Week:</b>', self), 0, 2, 1, 1, Qt.AlignRight)
     self.LineEditCurrentWeek = QLineEdit(self)
     self.LineEditCurrentWeek.setAlignment(Qt.AlignHCenter)
     self.LineEditCurrentWeek.setValidator(QIntValidator())
@@ -187,19 +187,19 @@ class AssignmentsWidget(QWidget):
     self.FrameTable = FrameChoresTable(self.DataHandlerObject, self)
     self.Grid.addWidget(self.FrameTable, 1, 0, 1, 10, Qt.AlignHCenter)
 
-    bchange = QPushButton("Change week")
+    bchange = QPushButton('Change week')
     bchange.clicked.connect(self.ChangeWeek)
     self.Grid.addWidget(bchange, 2, 0, 1, 1, Qt.AlignHCenter)
 
-    bprev = QPushButton("Prev week")
+    bprev = QPushButton('Prev week')
     bprev.clicked.connect(self.ChangeWeekPrev)
     self.Grid.addWidget(bprev, 2, 1, 1, 1, Qt.AlignHCenter)
 
-    bcurrent = QPushButton("Current week")
+    bcurrent = QPushButton('Current week')
     bcurrent.clicked.connect(self.ChangeWeekNow)
     self.Grid.addWidget(bcurrent, 2, 2, 1, 1, Qt.AlignHCenter)
 
-    bnext = QPushButton("Next week")
+    bnext = QPushButton('Next week')
     bnext.clicked.connect(self.ChangeWeekNext)
     self.Grid.addWidget(bnext, 2, 3, 1, 1, Qt.AlignHCenter)
 
@@ -231,7 +231,8 @@ class AssignmentsWidget(QWidget):
       self.CBoxMAPerson.addItem(name)
 
     for cid, name in self.DataHandlerObject.SortedChoresList:
-      self.CBoxMAChore.addItem('%s (%d weeks ago, freq: %d weeks)' % (name, self.DataHandlerObject.GetWeekDifference(self.SelectedDate, cid), self.DataHandlerObject.GetItemKey('chores', cid, 'freq')))
+      self.CBoxMAChore.addItem(name)
+      #self.CBoxMAChore.addItem('%s (%d weeks ago, freq: %d weeks)' % (name, self.DataHandlerObject.GetWeekDifference(self.SelectedDate, cid), self.DataHandlerObject.GetItemKey('chores', cid, 'freq')))
 
     self.Grid.addWidget(QLabel('<b>Automatic assignment</b>', self), 4, 0, Qt.AlignHCenter)
 
@@ -263,11 +264,11 @@ class AssignmentsWidget(QWidget):
 
   def ChangeWeek(self):
     self.SelectedYear, self.SelectedWeek = int(self.LineEditCurrentYear.text()), int(self.LineEditCurrentWeek.text())
-    self.SelectedDate = datetime.datetime.strptime('%d-W%d-1' % (self.SelectedYear, self.SelectedWeek), "%Y-W%W-%w").date()
+    self.SelectedDate = datetime.datetime.strptime('%d-W%d-1' % (self.SelectedYear, self.SelectedWeek), '%Y-W%W-%w').date()
 
     self.SelectedYear, self.SelectedWeek = self.SelectedDate.isocalendar()[:2]
 
-    self.LabelWeekDays.setText("<b>From</b> %s <b>to</b> %s" % (datetime.datetime.strptime('%d-W%d-1' % (self.SelectedYear, self.SelectedWeek), "%Y-W%W-%w").date(), datetime.datetime.strptime('%d-W%d-0' % (self.SelectedYear, self.SelectedWeek), "%Y-W%W-%w").date()))
+    self.LabelWeekDays.setText('<b>From</b> %s <b>to</b> %s' % (datetime.datetime.strptime('%d-W%d-1' % (self.SelectedYear, self.SelectedWeek), '%Y-W%W-%w').date(), datetime.datetime.strptime('%d-W%d-0' % (self.SelectedYear, self.SelectedWeek), '%Y-W%W-%w').date()))
 
     if self.DataHandlerObject.LoadAssignment(self.SelectedDate):
       self.FrameTable.LoadTempAssignment()
@@ -330,4 +331,5 @@ class AssignmentsWidget(QWidget):
       self.CBoxMAPerson.setItemText(i, name)
 
     for i, (cid, name) in enumerate(self.DataHandlerObject.SortedChoresList):
-      self.CBoxMAChore.setItemText(i, '%s (%d weeks ago, freq: %d weeks)' % (name, self.DataHandlerObject.GetWeekDifference(self.SelectedDate, cid), self.DataHandlerObject.GetItemKey('chores', cid, 'freq')))
+      self.CBoxMAChore.setItemText(i, name)
+      #self.CBoxMAChore.setItemText(i, '%s (%d weeks ago, freq: %d weeks)' % (name, self.DataHandlerObject.GetWeekDifference(self.SelectedDate, cid), self.DataHandlerObject.GetItemKey('chores', cid, 'freq')))

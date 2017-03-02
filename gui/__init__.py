@@ -3,6 +3,7 @@ from .ChoresWidget import *
 from .ParticipantsWidget import *
 from .AssignWidget import *
 from .BillingWidget import *
+from .ExpensesWidget import *
 
 class MainWindow(QMainWindow):
   def __init__(self):
@@ -11,8 +12,8 @@ class MainWindow(QMainWindow):
     self.setCentralWidget(QWidget())
     self.Init()
 
-    self.TabOrdering = { 0 : 'Assignments', 1 : 'Chores', 2 : 'Participants', 3 : 'Billing' }
-    self.TabWidgetTypes = { 'Chores' : ChoresWidget, 'Participants' : ParticipantsWidget, 'Assignments' : AssignmentsWidget, 'Billing' : BillingWidget }
+    self.TabOrdering = { 0 : 'Assignments', 1 : 'Chores', 2 : 'Participants', 3 : 'Expenses && Payments', 4 : 'Billing' }
+    self.TabWidgetTypes = { 'Chores' : ChoresWidget, 'Participants' : ParticipantsWidget, 'Assignments' : AssignmentsWidget, 'Billing' : BillingWidget, 'Expenses && Payments' : ExpPayWidget }
     self.UpdateFunctions = { 'Assignments' : lambda w: w.Update() }
 
     for i in range(len(self.TabOrdering)): self.InitTab(i)

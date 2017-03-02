@@ -36,9 +36,9 @@ class DataHandler:
     self.DataTexFile = 'tex/data.tex'
     self.DateTexFile = 'tex/date.tex'
 
-    self.ConfigData = {'chores':{},'participants':{}}
+    self.ConfigData = { 'chores' : {}, 'participants' : {} }
     self.AssignmentsData = {}
-    self.BillingData = { 'config': {}, 'data': {} }
+    self.BillingData = { 'config' : {'recurring' : 0.0, 'bank_name' : '', 'acc_no' : '', 'acc_holder' : '', 'loc' : ''}, 'expenses' : {}, 'payments' : {} }
 
     self.TempWeekAsignment = {}
 
@@ -46,7 +46,7 @@ class DataHandler:
       'chores' :
         {'freq': -1, 'priority': -1, 'alast': '0001-W1', 'timestamp': '(not found)', 'name': '(not found)', 'uuid': '(not found)', 'atimes': -1, 'points': 0},
       'participants' :
-        {'cando': False, 'uuid': '(not found)', 'timestamp': '(not found)', 'name': '(not found)', 'athome': False}
+        {'uuid': '(not found)', 'timestamp': '(not found)', 'name': '(not found)', 'home': False}
     }
 
     try:
@@ -57,8 +57,8 @@ class DataHandler:
 
     except Exception as e:
       print('Error loading configuration file: %s' % e)
-      self.UpdateConfigFile()
 
+    self.UpdateConfigFile()
     self.GenerateSortedLists()
 
     try:
@@ -66,18 +66,22 @@ class DataHandler:
       file_string = assignments_file.read()
       assignments_file.close()
       self.AssignmentsData.update(json.loads(file_string))
+
     except Exception as e:
       print('Error loading assignments file: %s' % e)
-      self.UpdateAssignmentsFile()
+
+    self.UpdateAssignmentsFile()
 
     try:
       billing_file = open(self.BillingFile, 'r')
       file_string = billing_file.read()
       billing_file.close()
       self.BillingData.update(json.loads(file_string))
+
     except Exception as e:
-      print('Error loading assignments file: %s' % e)
-      self.UpdateBillingFile()
+      print('Error loading billing file: %s' % e)
+
+    self.UpdateBillingFile()
 
   def GenerateSortedLists(self):
     self.SortedParticipantsList = [(pid, self.GetItemKey('participants', pid, 'name')) for pid in self.ConfigData['participants']]
@@ -90,11 +94,15 @@ class DataHandler:
     self.ConfigData[key][new_data['uuid']] = new_data
     self.GenerateSortedLists()
     self.UpdateConfigFile()
+    return new_data['uuid']
 
   def EditItem(self, key, uuid, new_data):
-    self.ConfigData[key][uuid].update(new_data)
-    self.GenerateSortedLists()
-    self.UpdateConfigFile()
+    try:
+      self.ConfigData[key][uuid].update(new_data)
+      self.GenerateSortedLists()
+      self.UpdateConfigFile()
+    except:
+      return
 
   def RemoveItem(self, key, uuid):
     del self.ConfigData[key][uuid]
@@ -113,8 +121,52 @@ class DataHandler:
     except Exception as e:
       return self.NotFoundData[key][itemkey]
 
+  def BillingAddNewItem(self, key, new_data):
+    new_data.update({'timestamp': str(datetime.datetime.now()), 'tuuid': str(uuid.uuid4())})
+    self.BillingData[key][new_data['tuuid']] = new_data
+    self.UpdateBillingFile()
+    return new_data['tuuid']
+
+  def BillingEditItem(self, key, uuid, new_data):
+    self.BillingData[key][uuid].update(new_data)
+    self.UpdateBillingFile()
+
+  def BillingRemoveItem(self, key, uuid):
+    del self.BillingData[key][uuid]
+    self.UpdateBillingFile()
+
+  def BillingGetItemsInRange(self, key, date0, date1):
+    return [tuuid for tuuid in self.BillingData[key] if date0 <= datetime.date(*self.BillingData[key][tuuid]['date']) < date1]
+
+  def ComputeDateFromWeek(self, str_date, day = 1):
+    return datetime.datetime.strptime('%s-%d' % (str_date, day), '%Y-W%W-%w').date()
+
+  def BillingGetChoresInRange(self, date0, date1):
+    # chores_data[puuid] = reward
+    chores_data = {}
+    for (pid, name) in self.SortedParticipantsList:
+      chores_data[pid] = 0.0
+
+    for key in self.AssignmentsData:
+      if date0 <= self.ComputeDateFromWeek(key) < date1:
+        for auuid in self.AssignmentsData[key]['normal']:
+          reward = self.GetItemKey('chores', self.AssignmentsData[key]['normal'][auuid]['choreuuid'], 'reward')
+
+          chores_data[self.AssignmentsData[key]['normal'][auuid]['personuuid']] += reward * ( 1.0 if self.AssignmentsData[key]['normal'][auuid]['home'] else 0.0 )
+
+          for pid in self.AssignmentsData[key]['normal'][auuid]['puuidcomp']:
+            chores_data[pid] -= reward
+
+        for auuid in self.AssignmentsData[key]['other']:
+          reward = self.GetItemKey('chores', self.AssignmentsData[key]['other'][auuid]['choreuuid'], 'reward')
+
+          for pid in self.AssignmentsData[key]['other'][auuid]['puuidcomp']:
+            chores_data[pid] -= reward
+
+    return chores_data
+
   def GetWeekDifference(self, cdate, choreuuid):
-    return int((cdate - datetime.datetime.strptime(self.GetItemKey('chores', choreuuid, 'alast') + '-1', '%Y-W%W-%w').date()).days / 7)
+    return int((cdate - self.ComputeDateFromWeek(self.GetItemKey('chores', choreuuid, 'alast'))).days / 7)
 
   def TempClearChores(self):
     del self.TempWeekAsignment
@@ -211,7 +263,7 @@ class DataHandler:
   def TempSaveToTex(self, cdate, adict):
     try:
       tex_file = open(self.DateTexFile, 'w+')
-      tex_file.write('Week \\textbf{%s} -- From \\textbf{%s} to \\textbf{%s}' % (cdate.isocalendar()[1], datetime.datetime.strptime('%d-W%d-1' % cdate.isocalendar()[:2], '%Y-W%W-%w').date(), datetime.datetime.strptime('%d-W%d-0' % cdate.isocalendar()[:2], '%Y-W%W-%w').date()))
+      tex_file.write('Week \\textbf{%s} -- From \\textbf{%s} to \\textbf{%s}' % (cdate.isocalendar()[1], self.ComputeDateFromWeek(cdate.isocalendar()[:2], 1), self.ComputeDateFromWeek(cdate.isocalendar()[:2], 0)))
       tex_file.close()
 
       tex_file = open(self.DataTexFile, 'w+')
@@ -251,6 +303,6 @@ class DataHandler:
     try:
       billing_file = open(self.BillingFile, 'w+')
       json.dump(self.BillingData, billing_file)
-      assignments_file.close()
+      billing_file.close()
     except Exception as e:
       print('Error saving assignments file: %s' % e)

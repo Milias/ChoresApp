@@ -40,6 +40,11 @@ class AssignmentTreeItem(QTreeWidgetItem):
     else:
        self.setText(3, '')
 
+    if self.key == 'normal':
+      self.setText(4, 'Yes' if self.DataHandlerObject.TempWeekAsignment['normal'][self.auuid]['home'] else 'No')
+    else:
+      self.setText(4, '')
+
 
 class CompletionDialog(QDialog):
   def __init__(self, dho, parent):
@@ -53,16 +58,16 @@ class CompletionDialog(QDialog):
 
     self.Grid.addWidget(QLabel('<b>Select assignment:</b>', self), 0, 0, 1, 6, Qt.AlignHCenter)
     self.TAssignments = QTreeWidget(self)
-    self.TAssignments.setMinimumSize(960,480)
-    self.TAssignments.setColumnCount(4)
-    self.TAssignments.setHeaderLabels(['Chore', 'Assigned Person', 'Date', 'Name'])
-    for i, w in enumerate([460, 100, 150, 250]):
+    self.TAssignments.setMinimumSize(1015,480)
+    self.TAssignments.setColumnCount(5)
+    self.TAssignments.setHeaderLabels(['Chore', 'Assigned Person', 'Date', 'Name', 'Home'])
+    for i, w in enumerate([460, 100, 150, 250, 55]):
       self.TAssignments.setColumnWidth(i, w)
     self.TAssignments.setSortingEnabled(True)
     self.TAssignments.sortByColumn(1, Qt.AscendingOrder)
     self.TAssignments.setSelectionMode(QAbstractItemView.ExtendedSelection)
     self.TAssignments.itemSelectionChanged.connect(self.UpdateSelection)
-    self.Grid.addWidget(self.TAssignments, 1, 0, 1, 6, Qt.AlignHCenter)
+    self.Grid.addWidget(self.TAssignments, 1, 0, 1, 7, Qt.AlignHCenter)
 
     self.TITopCats = {}
     self.TIAssignmentChildren = []
@@ -78,6 +83,7 @@ class CompletionDialog(QDialog):
 
     self.Grid.addWidget(QLabel('Completion date:', self), 2, 0, 1, 1, Qt.AlignRight)
     self.DateEditComp = QDateEdit(QDate(datetime.date.today()), self)
+    self.DateEditComp.setDisplayFormat('yyyy-MM-dd')
     self.Grid.addWidget(self.DateEditComp, 2, 1, 1, 1, Qt.AlignLeft)
 
     self.Grid.addWidget(QLabel('Person(s):', self), 2, 2, 1, 1, Qt.AlignRight)
@@ -87,21 +93,37 @@ class CompletionDialog(QDialog):
     for pid, name in self.DataHandlerObject.SortedParticipantsList:
       self.CBoxPerson.addItem(name)
 
+    self.CheckBoxHome = QCheckBox('Home', self)
+    self.CheckBoxHome.stateChanged.connect(self.ChangeHomeState)
+    self.Grid.addWidget(self.CheckBoxHome, 2, 4, 1, 1, Qt.AlignHCenter)
+
     bcomp = QPushButton('Add', self)
     bcomp.clicked.connect(self.AddSelection)
-    self.Grid.addWidget(bcomp, 2, 4, 1, 1, Qt.AlignHCenter)
+    self.Grid.addWidget(bcomp, 2, 5, 1, 1, Qt.AlignHCenter)
 
     bcomp = QPushButton('Remove', self)
     bcomp.clicked.connect(self.RemoveSelection)
-    self.Grid.addWidget(bcomp, 2, 5, 1, 1, Qt.AlignHCenter)
+    self.Grid.addWidget(bcomp, 2, 6, 1, 1, Qt.AlignHCenter)
 
   def UpdateSelection(self):
     if len(self.TAssignments.selectedItems()) == 0: return
+
     datecomp = self.DataHandlerObject.TempWeekAsignment[self.TAssignments.selectedItems()[0].key][self.TAssignments.selectedItems()[0].auuid]['datecomp']
     if datecomp != []:
       self.DateEditComp.setDate(QDate(*datecomp))
     else:
       self.DateEditComp.setDate(QDate(datetime.date.today()))
+
+    if self.TAssignments.selectedItems()[0].key is 'normal':
+      self.CheckBoxHome.setChecked(self.DataHandlerObject.TempWeekAsignment[self.TAssignments.selectedItems()[0].key][self.TAssignments.selectedItems()[0].auuid]['home'])
+
+  def ChangeHomeState(self, s):
+    if len(self.TAssignments.selectedItems()) != 1: return
+    if self.TAssignments.selectedItems()[0].key is not 'normal': return
+
+    self.DataHandlerObject.TempWeekAsignment[self.TAssignments.selectedItems()[0].key][self.TAssignments.selectedItems()[0].auuid]['home'] = True if s else False
+
+    for item in self.TIAssignmentChildren: item.Update()
 
   def AddSelection(self):
     if self.CBoxPerson.currentIndex():
