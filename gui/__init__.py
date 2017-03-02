@@ -12,8 +12,8 @@ class MainWindow(QMainWindow):
     self.setCentralWidget(QWidget())
     self.Init()
 
-    self.TabOrdering = { 0 : 'Assignments', 1 : 'Chores', 2 : 'Participants', 3 : 'Expenses && Payments', 4 : 'Billing' }
-    self.TabWidgetTypes = { 'Chores' : ChoresWidget, 'Participants' : ParticipantsWidget, 'Assignments' : AssignmentsWidget, 'Billing' : BillingWidget, 'Expenses && Payments' : ExpPayWidget }
+    self.TabOrdering = { 0 : 'Assignments', 1 : 'Chores', 2 : 'Participants', 3 : 'Expenses, Payments && Bills', 4 : 'Billing' }
+    self.TabWidgetTypes = { 'Chores' : ChoresWidget, 'Participants' : ParticipantsWidget, 'Assignments' : AssignmentsWidget, 'Billing' : BillingWidget, 'Expenses, Payments && Bills' : ExpPayWidget }
     self.UpdateFunctions = { 'Assignments' : lambda w: w.Update() }
 
     for i in range(len(self.TabOrdering)): self.InitTab(i)

@@ -38,7 +38,7 @@ class DataHandler:
 
     self.ConfigData = { 'chores' : {}, 'participants' : {} }
     self.AssignmentsData = {}
-    self.BillingData = { 'config' : {'recurring' : 0.0, 'bank_name' : '', 'acc_no' : '', 'acc_holder' : '', 'loc' : ''}, 'expenses' : {}, 'payments' : {} }
+    self.BillingData = { 'config' : {'recurring' : 0.0, 'bank_name' : '', 'acc_no' : '', 'acc_holder' : '', 'loc' : ''}, 'bills' : {}, 'group_bills' : {}, 'expenses' : {}, 'payments' : {} }
 
     self.TempWeekAsignment = {}
 
@@ -135,8 +135,15 @@ class DataHandler:
     del self.BillingData[key][uuid]
     self.UpdateBillingFile()
 
-  def BillingGetItemsInRange(self, key, date0, date1):
-    return [tuuid for tuuid in self.BillingData[key] if date0 <= datetime.date(*self.BillingData[key][tuuid]['date']) < date1]
+  def BillingGetItemsInRange(self, key, date0 = None, date1 = None):
+    if date0 and date1:
+      return [tuuid for tuuid in self.BillingData[key] if date0 <= datetime.date(*self.BillingData[key][tuuid]['date']) < date1]
+    elif date0 and date1 == None:
+      return [tuuid for tuuid in self.BillingData[key] if date0 <= datetime.date(*self.BillingData[key][tuuid]['date'])]
+    elif date0 == None and date1:
+      return [tuuid for tuuid in self.BillingData[key] if datetime.date(*self.BillingData[key][tuuid]['date']) < date1]
+    else:
+      return list(self.BillingData[key].keys())
 
   def ComputeDateFromWeek(self, str_date, day = 1):
     return datetime.datetime.strptime('%s-%d' % (str_date, day), '%Y-W%W-%w').date()
@@ -164,6 +171,9 @@ class DataHandler:
             chores_data[pid] -= reward
 
     return chores_data
+
+  def ComputeCurrentBalance(self, puuid):
+    return
 
   def GetWeekDifference(self, cdate, choreuuid):
     return int((cdate - self.ComputeDateFromWeek(self.GetItemKey('chores', choreuuid, 'alast'))).days / 7)

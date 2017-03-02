@@ -25,7 +25,6 @@ class ParticipantsBalanceItemWidget(QFrame):
     self.Grid.addWidget(QLabel('<b>Shopping</b>', self), 1, 0, Qt.AlignRight)
     self.Grid.addWidget(QLabel('<b>Chores</b>', self), 1, 2, Qt.AlignRight)
     self.Grid.addWidget(QLabel('<b>Subtotal</b>', self), 1, 4, Qt.AlignHCenter)
-    self.Grid.addWidget(QLabel('<b>Balance</b>', self), 1, 5, Qt.AlignHCenter)
 
     self.Inputs = {
       'name' : [
@@ -36,7 +35,7 @@ class ParticipantsBalanceItemWidget(QFrame):
         QLabel('0.00€', self), (0, 3, Qt.AlignLeft)
       ],
 
-      'shopping' : [
+      'personal_shopping_costs' : [
         QLabel('0.00€', self), (1, 1, Qt.AlignLeft)
       ],
 
@@ -49,13 +48,6 @@ class ParticipantsBalanceItemWidget(QFrame):
         lambda q: (
           q.setFont(QFont('Arial', 24, 0)),
         )
-      ],
-
-      'current_balance' : [
-        QLabel('0.00€', self), (0, 5, Qt.AlignHCenter),
-        lambda q: (
-          q.setFont(QFont('Arial', 28, 0)),
-        )
       ]
     }
 
@@ -64,25 +56,35 @@ class ParticipantsBalanceItemWidget(QFrame):
         self.Inputs[key][2](self.Inputs[key][0])
       self.Grid.addWidget(self.Inputs[key][0], *self.Inputs[key][1])
 
+    self.BillData = {
+      'recurring' : 0.0,
+      'shared_shopping_costs' : 0.0,
+      'contribution' : 0.0,
+      'personal_shopping_costs' : 0.0,
+      'chores' : 0.0,
+      'subtotal' : 0.0
+    }
+
   def Update(self, py_dates, chores_data, ssc):
     if self.puuid is None: return
 
+    self.BillData['recurring'] = self.DataHandlerObject.BillingData['config']['recurring']
+    self.BillData['shared_shopping_costs'] = ssc
+    self.BillData['chores'] = chores_data[self.puuid]
+    self.BillData['contribution'] = self.DataHandlerObject.GetItemKey('participants', self.puuid, 'contribution')
+
+    self.BillData['personal_shopping_costs'] = 0.0
+    for tuuid in self.DataHandlerObject.BillingGetItemsInRange('expenses', *py_dates):
+      if self.DataHandlerObject.BillingData['expenses'][tuuid]['puuid'] == self.puuid:
+        self.BillData['personal_shopping_costs'] += self.DataHandlerObject.BillingData['expenses'][tuuid]['amount']
+
+    self.BillData['subtotal'] = self.BillData['recurring'] + self.BillData['shared_shopping_costs'] + self.BillData['contribution'] + self.BillData['chores'] - self.BillData['personal_shopping_costs']
+
     self.Inputs['name'][0].setText(self.DataHandlerObject.GetItemKey('participants', self.puuid, 'name'))
 
-    contribution = self.DataHandlerObject.GetItemKey('participants', self.puuid, 'contribution')
-    self.Inputs['contribution'][0].setText(u'%2.2f€' % contribution)
-
-    relevant_tuuids = self.DataHandlerObject.BillingGetItemsInRange('expenses', *py_dates)
-
-    s = 0.0
-    for tuuid in relevant_tuuids:
-      if self.DataHandlerObject.BillingData['expenses'][tuuid]['puuid'] == self.puuid:
-        s += self.DataHandlerObject.BillingData['expenses'][tuuid]['amount']
-
-    self.Inputs['shopping'][0].setText(u'%2.2f€' % s)
-    self.Inputs['chores'][0].setText(u'%2.2f€' % chores_data[self.puuid])
-    self.Inputs['subtotal'][0].setText(u'%2.2f€' % (self.DataHandlerObject.BillingData['config']['recurring'] + ssc + contribution + chores_data[self.puuid] - s))
-
+    for key in self.BillData:
+      if key in self.Inputs:
+        self.Inputs[key][0].setText(u'%2.2f€' % self.BillData[key])
 
 class ParticipantsBalanceWidget(QWidget):
   def __init__(self, dho, parent):
@@ -193,7 +195,14 @@ class BillingWidget(QWidget):
 
     bsave = QPushButton('Save', self.CommonCostWidget)
     bsave.clicked.connect(self.SaveInformation)
-    self.CommonCostBox.addWidget(bsave, 9, 0, 1, 2, Qt.AlignHCenter)
+    self.CommonCostBox.addWidget(bsave, 9, 0, 1, 1, Qt.AlignHCenter)
+
+    bgenbill = QPushButton('Generate Bill', self.CommonCostWidget)
+    bgenbill.clicked.connect(self.SaveInformation)
+    self.CommonCostBox.addWidget(bgenbill, 9, 1, 1, 1, Qt.AlignHCenter)
+
+    self.BillStatus = QLabel('', self.CommonCostWidget)
+    self.CommonCostBox.addWidget(self.BillStatus, 10, 0, 1, 2, Qt.AlignHCenter)
 
     self.LoadInformation()
 
@@ -237,10 +246,33 @@ class BillingWidget(QWidget):
     s = 0.0
     for tuuid in relevant_tuuids:
       s += self.DataHandlerObject.BillingData['expenses'][tuuid]['amount']
-    s /= 10.0
+    s /= len(self.DataHandlerObject.SortedParticipantsList)
 
     self.SharedShoppingCosts = s
     self.LabelShopCost.setText('%2.2f€' % s)
+
+  def GenerateBill(self):
+    group_data = {
+      'date_range' : [list(qd.date().toPyDate().timetuple())[:3] for qd in self.DateInterval],
+      'buuids' : []
+    }
+
+    gbuuid = self.DataHandlerObject.BillingAddNewItem('group_bills', group_data)
+
+    bill_data = {
+      'date_range' : [list(qd.date().toPyDate().timetuple())[:3] for qd in self.DateInterval],
+      'puuid' : '',
+      'bill_data' : {},
+      'gbuuid' : gbuuid
+    }
+
+    for widget in self.BillingWidget.ParticipantItems:
+      bill_data['puuid'] = widget.puuid
+      bill_data['bill_data'] = widget.BillData
+
+      group_data['buuids'].append(self.DataHandlerObject.BillingAddNewItem('bills', copy.deepcopy(bill_data)))
+
+    self.DataHandlerObject.BillingEditItem('group_bills', gbuuid, group_data)
 
   def Update(self):
     self.ComputeSharedShoppingCosts()

@@ -108,9 +108,11 @@ class TransactionsItemWidget(QFrame):
     self.Update()
 
   def DeleteTransaction(self):
+    self.hide()
+
+    self.SetEditMode(False)
     self.DataHandlerObject.BillingRemoveItem(self.tkey, self.tuuid)
     self.tuuid = None
-    self.hide()
 
   def SetEditMode(self, edit_mode = True):
     if self.tuuid is None: return
@@ -168,7 +170,7 @@ class TransactionsItemWidget(QFrame):
     self.Inputs['amount'][1].setText('%2.2f' % amount)
 
 class TransactionsWidget(QWidget):
-  def __init__(self, dho, tkey, parent):
+  def __init__(self, dho, tkey, parent, can_add = True):
     super().__init__(parent)
     self.DataHandlerObject = dho
     self.Grid = QVBoxLayout(self)
@@ -177,16 +179,32 @@ class TransactionsWidget(QWidget):
     self.Grid.setSizeConstraint(QLayout.SetMinAndMaxSize)
 
     self.tkey = tkey
+    self.CanAdd = can_add
 
     self.TransactionItems = []
 
-    badd = QPushButton('', self)
-    badd.setIcon(QIcon('gui/icons/add.svg'))
-    badd.setIconSize(QSize(48, 48))
-    badd.setFixedSize(1200, 56)
-    badd.clicked.connect(lambda: self.NewTransaction(self.DataHandlerObject.BillingAddNewItem(self.tkey, {'puuid' : self.DataHandlerObject.SortedParticipantsList[0][0], 'date' : list(datetime.date.today().timetuple())[:3], 'descr' : '', 'amount' : 0.0})))
+    if can_add: self.CreateAddButton()
 
-    self.Grid.addWidget(badd, 100, Qt.AlignHCenter)
+  def CreateAddButton(self):
+    self.ButtonAdd = QPushButton('', self)
+    self.ButtonAdd.setIcon(QIcon('gui/icons/add.svg'))
+    self.ButtonAdd.setIconSize(QSize(48, 48))
+    self.ButtonAdd.setFixedSize(1200, 56)
+    self.ButtonAdd.clicked.connect(
+      lambda:  self.NewTransaction(
+        self.DataHandlerObject.BillingAddNewItem(
+          self.tkey,
+          {
+            'puuid' : self.DataHandlerObject.SortedParticipantsList[0][0],
+            'date' : list(datetime.date.today().timetuple())[:3],
+            'descr' : '',
+            'amount' : 0.0
+          }
+        )
+      )
+    )
+
+    self.Grid.addWidget(self.ButtonAdd, 100, Qt.AlignHCenter)
 
   def LoadTransactions(self, py_date0, py_date1):
     for widget in self.TransactionItems:
@@ -206,97 +224,3 @@ class TransactionsWidget(QWidget):
     self.TransactionItems.append(TransactionsItemWidget(self.DataHandlerObject, self.tkey, tuuid, self, edit_mode))
 
     self.Grid.addWidget(self.TransactionItems[-1], len(self.TransactionItems), Qt.AlignHCenter)
-
-"""
-  Expenses and Payments - Tab Widget
-"""
-
-class ExpPayWidget(QWidget):
-  def __init__(self, name, parent, dho):
-    super().__init__(parent.TabBox)
-    self.DataHandlerObject = dho
-
-    self.Grid = QGridLayout(self)
-
-    self.Parent = parent
-    self.Name = name
-
-    self.Init()
-    self.TabOrdering = { 0 : 'Expenses', 1 : 'Payments' }
-    self.TabWidgetTypes = { 'Expenses' : ExpensesWidget, 'Payments' : PaymentsWidget }
-
-    for i in range(len(self.TabOrdering)): self.InitTab(i)
-
-  def Init(self):
-    self.TabWidgets = {}
-
-    self.TabBox = QTabWidget(self)
-    self.Grid.addWidget(self.TabBox, 0, 0)
-
-    self.DateWidget = QWidget(self)
-    self.DateBox = QHBoxLayout(self.DateWidget)
-    self.Grid.addWidget(self.DateWidget, 1, 0, 1, 3, Qt.AlignHCenter)
-
-    self.DateBox.addWidget(QLabel('Choose date interval:', self.DateWidget), 0, Qt.AlignLeft)
-
-    self.DateInterval = [QDateEdit(QDate(datetime.date.today() - datetime.timedelta(days=60)), self.DateWidget), QDateEdit(QDate(datetime.date.today()), self.DateWidget)]
-
-    for i, DE in enumerate(self.DateInterval):
-      DE.setDisplayFormat('yyyy-MM-dd')
-      self.DateBox.addWidget(DE, i + 1, Qt.AlignHCenter)
-
-    bupdate = QPushButton('Update', self)
-    bupdate.clicked.connect(self.LoadTransactions)
-    self.DateBox.addWidget(bupdate, len(self.DateInterval) + 1)
-
-  def InitTab(self, index):
-    name = self.TabOrdering[index]
-    self.TabWidgets[name] = self.TabWidgetTypes[name](name, self, self.DataHandlerObject)
-    self.TabBox.addTab(self.TabWidgets[name], name)
-
-  def LoadTransactions(self):
-    py_dates = [qd.date().toPyDate() for qd in self.DateInterval]
-    self.TabBox.currentWidget().TransWidget.LoadTransactions(*py_dates)
-
-"""
-  Expenses - Tab Widget
-"""
-
-class ExpensesWidget(QWidget):
-  def __init__(self, name, parent, dho):
-    super().__init__(parent.TabBox)
-    self.DataHandlerObject = dho
-
-    self.Grid = QGridLayout(self)
-    self.Grid.setSpacing(10)
-
-    self.Parent = parent
-    self.Name = name
-
-    self.TransWidget = TransactionsWidget(self.DataHandlerObject, 'expenses', self)
-
-    self.TransScroll = QScrollArea(self)
-    self.TransScroll.setWidget(self.TransWidget)
-    self.TransScroll.setAlignment(Qt.AlignHCenter)
-    self.Grid.addWidget(self.TransScroll, 0, 0)
-
-"""
-  Payments - Tab Widget
-"""
-
-class PaymentsWidget(QWidget):
-  def __init__(self, name, parent, dho):
-    super().__init__(parent.TabBox)
-    self.DataHandlerObject = dho
-
-    self.Grid = QGridLayout(self)
-    self.Grid.setSpacing(10)
-
-    self.Parent = parent
-    self.Name = name
-
-    self.TransWidget = TransactionsWidget(self.DataHandlerObject, 'payments', self)
-
-    self.TransScroll = QScrollArea(self)
-    self.TransScroll.setWidget(self.TransWidget)
-    self.Grid.addWidget(self.TransScroll, 0, 0)
