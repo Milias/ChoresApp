@@ -8,3 +8,5 @@ A program for bookkeeping and chores tracking.
 * Check icon (check.svg) created by Johan Ronsse from the Noun Project.
 * Add icon (add.svg) created by Gautam Arora from the Noun Project.
 * Delete icon (edit.svg) created by lipi from the Noun Project.
+* View icon (view.svg) created by Edward Boatman from the Noun Project.
+* TEX File by Viktor Vorobyev from the Noun Project.

@@ -33,15 +33,15 @@ class ParticipantsWidget(QWidget):
     self.ListWidget.setFixedSize(400, 700)
     self.LoadParticipants()
 
-    self.Grid.addWidget(self.ListWidget, 1, 0, 10, 2, Qt.AlignHCenter)
+    self.Grid.addWidget(self.ListWidget, 1, 0, 11, 2, Qt.AlignHCenter)
 
     badd = QPushButton('Add')
     badd.clicked.connect(self.AddNewParticipant)
-    self.Grid.addWidget(badd, 11, 0, 1, 1, Qt.AlignRight)
+    self.Grid.addWidget(badd, 12, 0, 1, 1, Qt.AlignRight)
 
     brem = QPushButton('Remove')
     brem.clicked.connect(self.RemoveParticipant)
-    self.Grid.addWidget(brem, 11, 1, 1, 1, Qt.AlignLeft)
+    self.Grid.addWidget(brem, 12, 1, 1, 1, Qt.AlignLeft)
 
     nrow = 0
     self.Grid.addWidget(QLabel('<b>Information</b>', self), nrow, 2, 1, 2, Qt.AlignHCenter)
@@ -71,6 +71,11 @@ class ParticipantsWidget(QWidget):
     self.LineEditBalanceOffset = QLineEdit(self)
     self.LineEditBalanceOffset.setValidator(QRegExpValidator(QRegExp('\-?\d{1,3}.\d{1,2}'), self))
     self.Grid.addWidget(self.LineEditBalanceOffset, nrow, 3, 1, 1, Qt.AlignLeft)
+    nrow += 1
+
+    self.Grid.addWidget(QLabel('Balance:', self), nrow, 2, 1, 1, Qt.AlignRight)
+    self.LabelBalance = QLabel('0.00€', self)
+    self.Grid.addWidget(self.LabelBalance, nrow, 3, 1, 1, Qt.AlignLeft)
     nrow += 1
 
     self.Grid.addWidget(QLabel('<b>Extra information</b>', self), nrow, 2, 1, 2, Qt.AlignHCenter)
@@ -104,8 +109,9 @@ class ParticipantsWidget(QWidget):
     if item == None: return
     self.LineEditName.setText(item.ParticipantData['name'])
     self.CheckBoxHome.setChecked(item.ParticipantData['athome'])
-    self.LineEditContr.setText('%2.2f' % item.ParticipantData['contribution'])
-    self.LineEditBalanceOffset.setText('%2.2f' % item.ParticipantData['boffset'])
+    self.LineEditContr.setText('%.2f' % item.ParticipantData['contribution'])
+    self.LineEditBalanceOffset.setText('%.2f' % item.ParticipantData['boffset'])
+    self.LabelBalance.setText('%.2f' % self.DataHandlerObject.ComputeCurrentBalance(item.ParticipantData['uuid']))
     self.LabelCreation.setText(item.ParticipantData['timestamp'])
     self.LabelUUID.setText(item.ParticipantData['uuid'])
 
@@ -113,8 +119,9 @@ class ParticipantsWidget(QWidget):
     self.ListWidget.setCurrentItem(None)
     self.LineEditName.setText('')
     self.CheckBoxHome.setChecked(True)
-    self.LineEditContr.setText('0.00')
-    self.LineEditBalanceOffset.setText('0.00')
+    self.LineEditContr.setText('0.00€')
+    self.LineEditBalanceOffset.setText('0.00€')
+    self.LabelBalance.setText('0.00€')
     self.LabelCreation.setText('(not yet set)')
     self.LabelUUID.setText('(not yet set)')
     self.LoadParticipants()

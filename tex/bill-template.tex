@@ -1,0 +1,33 @@
+\documentclass[12pt]{article}
+
+\usepackage[a4paper,margin=1.0cm,landscape]{geometry}
+\usepackage[utf8x]{inputenc}
+\usepackage[T1]{fontenc}
+\usepackage[cm]{fullpage}
+\usepackage{tabularx}
+\usepackage{eurosym}
+
+\begin{document}
+\pagenumbering{gobble}
+\begin{center}
+  \large
+  \textsc{Invoice}\footnote{Every quantity is presented in \euro.}\\
+  \input{date.tex}\\[0.5cm]
+
+  \LARGE
+  \begin{tabularx}{\textwidth}{|X|c|c|c|c|c|c|c|}
+    \hline
+    \textbf{Name} & \textbf{Recurring} & \textbf{$ssc$}\footnote{\textbf{Shared Shopping Costs.} Sum of $psc$ divided by the number of tenants.} & \textbf{Contribution} & \textbf{$psc$}\footnote{\textbf{Personal Shopping Costs.} Personal expenses in house related equipment and consumables.} & \textbf{Chores}\footnote{\textbf{Chores discount.} A value of \EUR{0.00} means all chores were done, \EUR{20.00} means no chores were done. Negative values mean more tasks than required were done. Each chore is worth \EUR{2.50}.} & \textbf{Subtotal} & \textbf{Balance}\footnote{\textbf{Balance.} $balance = recurring + ssc + contribution - psc + chores + debt$. This is the amount that should be sent to the account noted above.} \\ \hline
+    \hline
+    \input{data.tex}
+  \end{tabularx}\\[1.0cm]
+
+  \small
+  \begin{tabular}{|c|c|c|c|}
+    \hline
+    \textbf{Bank} & \textbf{Account No.} & \textbf{Account holder} & \textbf{Location} \\ \hline
+    \input{bank_details.tex}
+  \end{tabular}
+\end{center}
+
+\end{document}

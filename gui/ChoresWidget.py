@@ -112,7 +112,7 @@ class ChoresWidget(QWidget):
     self.LineEditFreq.setText(str(item.ChoreData['freq']))
     self.LineEditPrio.setText(str(item.ChoreData['priority']))
     self.LineEditLastA.setText(str(item.ChoreData['alast']))
-    self.LineEditPoints.setText('%2.2f' % item.ChoreData['reward'])
+    self.LineEditPoints.setText('%.2f' % item.ChoreData['reward'])
     self.LabelCreation.setText(item.ChoreData['timestamp'])
     self.LabelUUID.setText(item.ChoreData['uuid'])
     self.LabelTimes.setText(str(item.ChoreData['atimes']))

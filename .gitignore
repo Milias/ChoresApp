@@ -9,13 +9,13 @@
 
 data.tex
 date.tex
+bank_details.tex
 
 # Config files
 *.json
 
 # Python files
-*/__pycache__/*
-*/*.pyc
+*.pyc
 
 # MacOS files
-*.DS_Store
+.DS_Store

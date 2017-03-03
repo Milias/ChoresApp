@@ -149,7 +149,7 @@ class TransactionsItemWidget(QFrame):
     self.Inputs['descr'][0].setText(self.DataHandlerObject.BillingData[self.tkey][self.tuuid]['descr'])
 
     amount = self.DataHandlerObject.BillingData[self.tkey][self.tuuid]['amount']
-    self.Inputs['amount'][0].setText(u'%2.2f€' % amount)
+    self.Inputs['amount'][0].setText(u'%.2f€' % amount)
 
     self.Inputs['name'][1].setCurrentIndex(
       self.DataHandlerObject.SortedParticipantsList.index((
@@ -167,7 +167,7 @@ class TransactionsItemWidget(QFrame):
     self.Inputs['descr'][1].setText(self.DataHandlerObject.BillingData[self.tkey][self.tuuid]['descr'])
 
     amount = self.DataHandlerObject.BillingData[self.tkey][self.tuuid]['amount']
-    self.Inputs['amount'][1].setText('%2.2f' % amount)
+    self.Inputs['amount'][1].setText('%.2f' % amount)
 
 class TransactionsWidget(QWidget):
   def __init__(self, dho, tkey, parent, can_add = True):

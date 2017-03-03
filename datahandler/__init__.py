@@ -35,6 +35,7 @@ class DataHandler:
     self.BillingFile = 'config/billing.json'
     self.DataTexFile = 'tex/data.tex'
     self.DateTexFile = 'tex/date.tex'
+    self.BankTexFile = 'tex/bank_details.tex'
 
     self.ConfigData = { 'chores' : {}, 'participants' : {} }
     self.AssignmentsData = {}
@@ -137,11 +138,11 @@ class DataHandler:
 
   def BillingGetItemsInRange(self, key, date0 = None, date1 = None):
     if date0 and date1:
-      return [tuuid for tuuid in self.BillingData[key] if date0 <= datetime.date(*self.BillingData[key][tuuid]['date']) < date1]
+      return [tuuid for tuuid in self.BillingData[key] if date0 <= datetime.date(*self.BillingData[key][tuuid]['date']) <= date1]
     elif date0 and date1 == None:
       return [tuuid for tuuid in self.BillingData[key] if date0 <= datetime.date(*self.BillingData[key][tuuid]['date'])]
     elif date0 == None and date1:
-      return [tuuid for tuuid in self.BillingData[key] if datetime.date(*self.BillingData[key][tuuid]['date']) < date1]
+      return [tuuid for tuuid in self.BillingData[key] if datetime.date(*self.BillingData[key][tuuid]['date']) <= date1]
     else:
       return list(self.BillingData[key].keys())
 
@@ -173,7 +174,9 @@ class DataHandler:
     return chores_data
 
   def ComputeCurrentBalance(self, puuid):
-    return
+    bills = sum([self.BillingData['bills'][key]['bill_data']['subtotal'] for key in self.BillingData['bills'] if self.BillingData['bills'][key]['puuid'] == puuid])
+    payments = sum([self.BillingData['payments'][key]['amount'] for key in self.BillingData['payments'] if self.BillingData['payments'][key]['puuid'] == puuid])
+    return bills - self.GetItemKey('participants', puuid, 'boffset') - payments
 
   def GetWeekDifference(self, cdate, choreuuid):
     return int((cdate - self.ComputeDateFromWeek(self.GetItemKey('chores', choreuuid, 'alast'))).days / 7)
@@ -273,7 +276,7 @@ class DataHandler:
   def TempSaveToTex(self, cdate, adict):
     try:
       tex_file = open(self.DateTexFile, 'w+')
-      tex_file.write('Week \\textbf{%s} -- From \\textbf{%s} to \\textbf{%s}' % (cdate.isocalendar()[1], self.ComputeDateFromWeek(cdate.isocalendar()[:2], 1), self.ComputeDateFromWeek(cdate.isocalendar()[:2], 0)))
+      tex_file.write('Week \\textbf{%s} -- From \\textbf{%s} to \\textbf{%s}' % (cdate.isocalendar()[1], self.ComputeDateFromWeek(datetime.datetime.strftime(cdate, '%Y-W%W'), 1), self.ComputeDateFromWeek(datetime.datetime.strftime(cdate, '%Y-W%W'), 0)))
       tex_file.close()
 
       tex_file = open(self.DataTexFile, 'w+')
@@ -290,6 +293,46 @@ class DataHandler:
 
       tex_file.write('\n'.join(tex_str))
       tex_file.close()
+    except Exception as e:
+      print('Error writing to data.tex: %s' % e)
+
+  def BillingSaveToTex(self, gbuuid):
+    try:
+      tex_file = open(self.DateTexFile, 'w+')
+      date_range = tuple([datetime.datetime.strftime(datetime.date(*d), '%Y-%m-%d') for d in self.BillingData['group_bills'][gbuuid]['date_range']])
+
+      tex_file.write('Dates: \\textbf{%s} --- \\textbf{%s}' % date_range)
+
+      tex_file.close()
+
+      tex_file = open(self.DataTexFile, 'w+')
+      tex_str = []
+
+      sorted_bills = [(buuid, self.GetItemKey('participants', self.BillingData['bills'][buuid]['puuid'], 'name')) for buuid in self.BillingData['group_bills'][gbuuid]['buuids']]
+      sorted_bills.sort(key=lambda e: e[1].lower())
+
+      rec = self.BillingData['group_bills'][gbuuid]['group_bill_data']['recurring']
+      ssc = self.BillingData['group_bills'][gbuuid]['group_bill_data']['shared_shopping_costs']
+
+      for i, (buuid, name) in enumerate(sorted_bills):
+        contribution = self.BillingData['bills'][buuid]['bill_data']['contribution']
+        psc = self.BillingData['bills'][buuid]['bill_data']['personal_shopping_costs']
+        chores = self.BillingData['bills'][buuid]['bill_data']['chores']
+        subtotal = self.BillingData['bills'][buuid]['bill_data']['subtotal']
+        balance = self.ComputeCurrentBalance(self.BillingData['bills'][buuid]['puuid'])
+
+        tex_str.append('%s & %.2f & %.2f & %.2f & %.2f & %.2f & %.2f & \\emph{%.2f} \\\\ \\hline' % (tex_escape(name), rec, ssc, contribution, psc, chores, subtotal, balance))
+
+      tex_file.write('\n'.join(tex_str))
+      tex_file.close()
+
+      tex_file = open(self.BankTexFile, 'w+')
+
+      tex_str = '%s & %s & %s & %s \\\\ \\hline' % tuple([self.BillingData['config'][key] for key in self.BillingData['config'] if isinstance(self.BillingData['config'][key], str)])
+
+      tex_file.write(tex_str)
+      tex_file.close()
+
     except Exception as e:
       print('Error writing to data.tex: %s' % e)
 

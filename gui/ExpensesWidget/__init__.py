@@ -3,13 +3,12 @@ import functools
 
 from datahandler import *
 from .TransactionWidget import *
-from .BillsWidget import *
+from .PersonalBillsWidget import *
+from .GroupBillsWidget import *
 
 from PyQt5.QtCore import *
 from PyQt5.QtWidgets import *
 from PyQt5.QtGui import *
-
-import json
 
 """
   Expenses and Payments - Tab Widget
@@ -26,8 +25,8 @@ class ExpPayWidget(QWidget):
     self.Name = name
 
     self.Init()
-    self.TabOrdering = { 0 : 'Expenses', 1 : 'Payments', 2 : 'Personal bills' }
-    self.TabWidgetTypes = { 'Expenses' : ExpensesWidget, 'Payments' : PaymentsWidget, 'Personal bills' : PersBillsWidget }
+    self.TabOrdering = { 0 : 'Expenses', 1 : 'Payments', 2 : 'Bills' }
+    self.TabWidgetTypes = { 'Expenses' : TabExpensesWidget, 'Payments' : TabPaymentsWidget, 'Bills' : TabBillsWidget }
 
     for i in range(len(self.TabOrdering)): self.InitTab(i)
 
@@ -43,7 +42,7 @@ class ExpPayWidget(QWidget):
 
     self.DateBox.addWidget(QLabel('Choose date interval:', self.DateWidget), 0, Qt.AlignLeft)
 
-    self.DateInterval = [QDateEdit(QDate(datetime.date.today() - datetime.timedelta(days=60)), self.DateWidget), QDateEdit(QDate(datetime.date.today() + datetime.timedelta(days=1)), self.DateWidget)]
+    self.DateInterval = [QDateEdit(QDate(datetime.date.today() - datetime.timedelta(days=60)), self.DateWidget), QDateEdit(QDate(datetime.date.today()), self.DateWidget)]
 
     for i, DE in enumerate(self.DateInterval):
       DE.setDisplayFormat('yyyy-MM-dd')
@@ -66,7 +65,7 @@ class ExpPayWidget(QWidget):
   Expenses - Tab Widget
 """
 
-class ExpensesWidget(QWidget):
+class TabExpensesWidget(QWidget):
   def __init__(self, name, parent, dho):
     super().__init__(parent.TabBox)
     self.DataHandlerObject = dho
@@ -88,7 +87,7 @@ class ExpensesWidget(QWidget):
   Payments - Tab Widget
 """
 
-class PaymentsWidget(QWidget):
+class TabPaymentsWidget(QWidget):
   def __init__(self, name, parent, dho):
     super().__init__(parent.TabBox)
     self.DataHandlerObject = dho
@@ -107,10 +106,10 @@ class PaymentsWidget(QWidget):
     self.Grid.addWidget(self.TransScroll, 0, 0)
 
 """
-  Personal bills - Tab Widget
+  Bills - Tab Widget
 """
 
-class PersBillsWidget(QWidget):
+class TabBillsWidget(QWidget):
   def __init__(self, name, parent, dho):
     super().__init__(parent.TabBox)
     self.DataHandlerObject = dho
@@ -121,9 +120,21 @@ class PersBillsWidget(QWidget):
     self.Parent = parent
     self.Name = name
 
-    self.TransWidget = PersonalBillsWidget(self.DataHandlerObject, self)
+    self.TransWidget = GroupBillsWidget(self.DataHandlerObject, self)
 
-    self.TransScroll = QScrollArea(self)
-    self.TransScroll.setWidget(self.TransWidget)
-    self.TransScroll.setAlignment(Qt.AlignHCenter)
-    self.Grid.addWidget(self.TransScroll, 0, 1)
+    self.GBillsScroll = QScrollArea(self)
+    self.GBillsScroll.setWidget(self.TransWidget)
+    self.GBillsScroll.setAlignment(Qt.AlignHCenter)
+    self.GBillsScroll.setFixedWidth(450)
+    self.Grid.addWidget(self.GBillsScroll, 0, 0)
+
+    self.PBillsWidget = PersonalBillsWidget(self.DataHandlerObject, self)
+
+    self.PBillsScroll = QScrollArea(self)
+    self.PBillsScroll.setWidget(self.PBillsWidget)
+    self.PBillsScroll.setAlignment(Qt.AlignHCenter)
+    self.PBillsScroll.setFixedWidth(800)
+    self.Grid.addWidget(self.PBillsScroll, 0, 1)
+
+  def ConnectSignal(self, widget):
+    widget.ShowPersonalBillsSignal.connect(lambda: self.PBillsWidget.LoadTransactions(widget.buuid))

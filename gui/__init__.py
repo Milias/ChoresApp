@@ -1,4 +1,5 @@
 # -*- coding: utf8 -*-
+
 from .ChoresWidget import *
 from .ParticipantsWidget import *
 from .AssignWidget import *
