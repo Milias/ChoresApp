@@ -6,28 +6,6 @@ import copy
 import re
 import random
 
-def tex_escape(text):
-    '''
-        :param text: a plain text message
-        :return: the message escaped to appear correctly in LaTeX
-    '''
-    conv = {
-        '&': r'\&',
-        '%': r'\%',
-        '$': r'\$',
-        '#': r'\#',
-        '_': r'\_',
-        '{': r'\{',
-        '}': r'\}',
-        '~': r'\textasciitilde{}',
-        '^': r'\^{}',
-        '\\': r'\textbackslash{}',
-        '<': r'\textless',
-        '>': r'\textgreater',
-    }
-    regex = re.compile('|'.join(re.escape(str(key)) for key in sorted(conv.keys(), key = lambda item: - len(item))))
-    return regex.sub(lambda match: conv[match.group()], text)
-
 class DataHandler:
   def __init__(self):
     self.ConfigFile = 'config/config.json'
@@ -36,6 +14,8 @@ class DataHandler:
     self.DataTexFile = 'tex/data.tex'
     self.DateTexFile = 'tex/date.tex'
     self.BankTexFile = 'tex/bank_details.tex'
+    self.BillingDataTexFile = 'tex/billing_data.tex'
+    self.BillingTotalsTexFile = 'tex/billing_totals.tex'
 
     self.ConfigData = { 'chores' : {}, 'participants' : {} }
     self.AssignmentsData = {}
@@ -45,9 +25,9 @@ class DataHandler:
 
     self.NotFoundData = {
       'chores' :
-        {'freq': -1, 'priority': -1, 'alast': '0001-W1', 'timestamp': '(not found)', 'name': '(not found)', 'uuid': '(not found)', 'atimes': -1, 'points': 0},
+        {'freq': -1, 'priority': -1, 'alast': '0001-W1', 'timestamp': '(not found)', 'name': '(not found)', 'uuid': '(not found)', 'atimes': -1, 'points': 0, 'living' : False},
       'participants' :
-        {'uuid': '(not found)', 'timestamp': '(not found)', 'name': '(not found)', 'home': False}
+        {'uuid': '(not found)', 'timestamp': '(not found)', 'name': '(not found)', 'home': False, 'living' : False}
     }
 
     try:
@@ -59,7 +39,6 @@ class DataHandler:
     except Exception as e:
       print('Error loading configuration file: %s' % e)
 
-    self.UpdateConfigFile()
     self.GenerateSortedLists()
 
     try:
@@ -71,8 +50,6 @@ class DataHandler:
     except Exception as e:
       print('Error loading assignments file: %s' % e)
 
-    self.UpdateAssignmentsFile()
-
     try:
       billing_file = open(self.BillingFile, 'r')
       file_string = billing_file.read()
@@ -81,8 +58,6 @@ class DataHandler:
 
     except Exception as e:
       print('Error loading billing file: %s' % e)
-
-    self.UpdateBillingFile()
 
   def GenerateSortedLists(self):
     self.SortedParticipantsList = [(pid, self.GetItemKey('participants', pid, 'name')) for pid in self.ConfigData['participants']]
@@ -153,26 +128,27 @@ class DataHandler:
     return datetime.datetime.strptime('%s-%d' % (str_date, day), '%Y-W%W-%w').date()
 
   def BillingGetChoresInRange(self, date0, date1):
-    # chores_data[puuid] = reward
+    # chores_data[puuid] = [cost, reward]
     chores_data = {}
     for (pid, name) in self.SortedParticipantsList:
-      chores_data[pid] = 0.0
+      chores_data[pid] = {'cost' : 0.0, 'rewarded' : 0.0}
 
     for key in self.AssignmentsData:
       if date0 <= self.ComputeDateFromWeek(key) <= date1:
         for auuid in self.AssignmentsData[key]['normal']:
           reward = self.GetItemKey('chores', self.AssignmentsData[key]['normal'][auuid]['choreuuid'], 'reward')
 
-          chores_data[self.AssignmentsData[key]['normal'][auuid]['personuuid']] += reward * ( 1.0 if self.AssignmentsData[key]['normal'][auuid]['home'] else 0.0 )
+          if self.AssignmentsData[key]['normal'][auuid]['home']:
+            chores_data[self.AssignmentsData[key]['normal'][auuid]['personuuid']]['cost'] += reward
 
           for pid in self.AssignmentsData[key]['normal'][auuid]['puuidcomp']:
-            chores_data[pid] -= reward
+            chores_data[pid]['rewarded'] += reward
 
         for auuid in self.AssignmentsData[key]['other']:
           reward = self.GetItemKey('chores', self.AssignmentsData[key]['other'][auuid]['choreuuid'], 'reward')
 
           for pid in self.AssignmentsData[key]['other'][auuid]['puuidcomp']:
-            chores_data[pid] -= reward
+            chores_data[pid]['rewarded'] += reward
 
     return chores_data
 
@@ -284,7 +260,7 @@ class DataHandler:
     return False
 
   def TempSaveToTex(self, cdate, adict):
-    try:
+    #try:
       tex_file = open(self.DateTexFile, 'w+')
       tex_file.write('Week \\textbf{%s} -- From \\textbf{%s} to \\textbf{%s}' % (cdate.isocalendar()[1], self.ComputeDateFromWeek(datetime.datetime.strftime(cdate, '%Y-W%W'), 1), self.ComputeDateFromWeek(datetime.datetime.strftime(cdate, '%Y-W%W'), 0)))
       tex_file.close()
@@ -293,7 +269,7 @@ class DataHandler:
       tex_str = []
 
       for i, (uuid, name) in enumerate(self.SortedParticipantsList):
-        tex_str.append('%s & %s & %s & \phantom{---------------} & \\\\[0.25cm] \\hline' % ('Yes' if self.GetItemKey('participants', uuid, 'athome') else 'No', tex_escape(name), tex_escape(self.GetItemKey('chores', self.TempWeekAsignment['normal'][adict[i]['auuid']]['choreuuid'], 'name'))))
+        tex_str.append('%s & %s & %s & \phantom{---------------} & \\\\[0.25cm] \\hline' % ('Yes' if self.TempWeekAsignment['normal'][adict[i]['auuid']]['home'] else 'No', tex_escape(name), tex_escape(self.GetItemKey('chores', self.TempWeekAsignment['normal'][adict[i]['auuid']]['choreuuid'], 'name'))))
 
       for auuid in self.TempWeekAsignment['other']:
         tex_str.append('& (anyone) & %s & \phantom{---------------} & \\\\[0.15cm] \\hline' %  tex_escape(self.GetItemKey('chores', self.TempWeekAsignment['other'][auuid]['choreuuid'], 'name')))
@@ -303,8 +279,8 @@ class DataHandler:
 
       tex_file.write('\n'.join(tex_str))
       tex_file.close()
-    except Exception as e:
-      print('Error writing to data.tex: %s' % e)
+    #except Exception as e:
+      #print('Error writing to data.tex: %s' % e)
 
   def BillingSaveToTex(self, gbuuid):
     try:
@@ -319,11 +295,14 @@ class DataHandler:
       print('Error writing to %s: %s' % (self.DateTexFile, e))
 
     try:
-      tex_file = open(self.DataTexFile, 'w+')
+      tex_file = open(self.BillingDataTexFile, 'w+')
       tex_str = []
 
       sorted_bills = [(buuid, self.GetItemKey('participants', self.BillingData['bills'][buuid]['puuid'], 'name')) for buuid in self.BillingData['group_bills'][gbuuid]['buuids']]
       sorted_bills.sort(key=lambda e: e[1].lower())
+
+      rec = self.BillingData['group_bills'][gbuuid]['group_bill_data']['recurring']
+      ssc = self.BillingData['group_bills'][gbuuid]['group_bill_data']['shared_shopping_costs']
 
       for i, (buuid, name) in enumerate(sorted_bills):
         contribution = self.BillingData['bills'][buuid]['bill_data']['contribution']
@@ -335,7 +314,7 @@ class DataHandler:
         paid = sum([self.BillingData['payments'][tuuid]['amount'] for tuuid in self.BillingGetItemsInRange('payments', date_range[0], datetime.date.today()) if self.BillingData['payments'][tuuid]['puuid'] == self.BillingData['bills'][buuid]['puuid']])
         debt = balance - subtotal + paid
 
-        tex_str.append('%s & %.2f & %.2f & %.2f & %.2f & %.2f & %.2f & \\emph{%.2f} \\\\ \\hline' % (tex_escape(name), contribution, psc, chores, subtotal, debt, paid, balance))
+        tex_str.append('%s & %.2f & %.2f & %.2f & %.2f & %.2f & %.2f & %.2f \\\\ \\hline' % (tex_escape(name), rec, ssc, contribution, -psc, chores['cost'], -chores['rewarded'], subtotal))
 
       tex_file.write('\n'.join(tex_str))
       tex_file.close()
@@ -346,10 +325,7 @@ class DataHandler:
     try:
       tex_file = open(self.BankTexFile, 'w+')
 
-      rec = self.BillingData['group_bills'][gbuuid]['group_bill_data']['recurring']
-      ssc = self.BillingData['group_bills'][gbuuid]['group_bill_data']['shared_shopping_costs']
-
-      tex_str = '\\EUR{%.2f} & \\EUR{%.2f}' % (rec, ssc) + '& %s & %s & %s & %s \\\\ \\hline' % tuple([self.BillingData['config'][key] for key in self.BillingData['config'] if isinstance(self.BillingData['config'][key], str)])
+      tex_str = '%s & %s & %s & %s \\\\ \\hline' % tuple([self.BillingData['config'][key] for key in self.BillingData['config'] if isinstance(self.BillingData['config'][key], str)])
 
       tex_file.write(tex_str)
       tex_file.close()

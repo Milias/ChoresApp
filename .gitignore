@@ -19,3 +19,6 @@ bank_details.tex
 
 # MacOS files
 .DS_Store
+
+# Data files
+*.db

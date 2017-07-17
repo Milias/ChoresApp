@@ -1,0 +1,66 @@
+\documentclass[12pt]{article}
+
+\usepackage[a4paper,margin=1.0cm,landscape]{geometry}
+\usepackage[utf8x]{inputenc}
+\usepackage[T1]{fontenc}
+\usepackage[cm]{fullpage}
+\usepackage{tabularx}
+\usepackage{eurosym}
+\usepackage{footnote}
+
+\makesavenoteenv{tabular}
+
+\begin{document}
+\pagenumbering{gobble}
+\begin{center}
+  \large
+  \textsc{Invoice}\\
+  \input{date.tex}\\[0.5cm]
+\end{center}
+
+\begin{center}
+  \LARGE
+  \begin{tabularx}{0.8\textwidth}{|X|c|c|c|c|}
+    \hline
+    {\large\textbf{Name}} &
+    {\large\textbf{Subtotal}} &
+    {\large\textbf{Debt}\footnote{\textbf{Debt.} Debt since last invoice.}} &
+    {\large\textbf{Paid}\footnote{\textbf{Paid.} Amount paid during this invoice's period.}} &
+    {\large\textbf{Balance}} \\ \hline
+    \hline
+    \input{billing_totals.tex}
+  \end{tabularx}
+\end{center}
+
+\begin{center}
+  \small
+  \begin{tabular}{|c|c|c|c|c|c|}
+    \hline
+    \textbf{Bank} &
+    \textbf{Account No.} &
+    \textbf{Account holder} &
+    \textbf{Location} \\ \hline
+    \input{bank_details.tex}
+  \end{tabular}\\[0.5cm]
+\end{center}
+
+\newpage
+
+\begin{center}
+  \LARGE
+  \begin{tabularx}{0.9\textwidth}{|X|c|c|c|c|c|c|c|}
+    \hline
+    {\large\textbf{Name}} &
+    {\large\textbf{Recurring}} &
+    {\large\textbf{$ssc$}\footnote{\textbf{Shared Shopping Costs.} Sum of $psc$ divided by the number of tenants.}} &
+    {\large\textbf{Contribution}} &
+    {\large\textbf{$psc$}\footnote{\textbf{Personal Shopping Costs.} Personal expenses in house related equipment and consumables.}} &
+    {\large\textbf{Cleaning costs}} &
+    {\large\textbf{Discount}\footnote{\textbf{Chores discount.} \EUR{0.00} means no chores were done. Each chore is worth \EUR{2.50}.}} &
+    {\large\textbf{Subtotal}} \\ \hline
+    \hline
+    \input{billing_data.tex}
+  \end{tabularx}
+\end{center}
+
+\end{document}
