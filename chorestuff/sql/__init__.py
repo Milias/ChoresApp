@@ -1,3 +1,3 @@
-from .sql_decl import *
-from .sql_access import *
+from .decl import *
+from .access import *
 

@@ -8,7 +8,7 @@ from datetime import datetime, date
 from sqlalchemy import Column, Integer, String, DateTime, Date, Text, ForeignKey, Binary, Boolean, Float, types, Enum
 from sqlalchemy.ext.declarative import declarative_base
 from sqlalchemy.orm import sessionmaker, relationship
-from sqlalchemy import create_engine, exists, desc, asc
+from sqlalchemy import create_engine, exists
 
 import jinja2
 from jinja2 import Template

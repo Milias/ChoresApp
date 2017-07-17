@@ -1,7 +1,4 @@
-from common import *
-
-class UUID(types.TypeDecorator):
-  impl = Binary
+from ..common import *
 
 class TransactionType(enum.Enum):
   expense = 1
@@ -16,7 +13,7 @@ class TransactionType(enum.Enum):
 class Tenant(Base):
   __tablename__ = 'tenants'
 
-  id = Column(UUID(), primary_key = True, default = uuid.uuid4)
+  id = Column(Integer, primary_key = True)
   added = Column(DateTime, nullable = False, default = datetime.now)
   edited = Column(DateTime, nullable = False, default = datetime.now, onupdate = datetime.now)
 
@@ -28,8 +25,8 @@ class Tenant(Base):
   # Contribution per month (regardless of weeks)
   contribution = Column(Float, default = 0.0, nullable = False)
 
-  living = Column(Boolean, default = True, nullable = False)
-  home = Column(Boolean, default = True, nullable = False)
+  is_living = Column(Boolean, default = True, nullable = False)
+  is_home = Column(Boolean, default = True, nullable = False)
 
 """
   Chore information
@@ -38,7 +35,7 @@ class Tenant(Base):
 class Chore(Base):
   __tablename__ = 'chores'
 
-  id = Column(UUID(), primary_key = True, default = uuid.uuid4)
+  id = Column(Integer, primary_key = True)
   added = Column(DateTime, nullable = False, default = datetime.now)
   edited = Column(DateTime, nullable = False, default = datetime.now, onupdate = datetime.now)
 
@@ -53,43 +50,43 @@ class Chore(Base):
 class AssignmentBundle(Base):
   __tablename__ = 'assignment_bundles'
 
-  id = Column(UUID(), primary_key = True, default = uuid.uuid4)
+  id = Column(Integer, primary_key = True)
   added = Column(DateTime, nullable = False, default = datetime.now)
   edited = Column(DateTime, nullable = False, default = datetime.now, onupdate = datetime.now)
 
-  due = Column(Date, nullable = False, default = date.today)
+  week = Column(Integer, nullable = False)
 
-  assignments = relationship('Assignment', back_populates = 'assignments')
+  assignments = relationship('Assignment', back_populates = 'bundle')
 
 class Assignment(Base):
   __tablename__ = 'assignments'
 
-  id = Column(UUID(), primary_key = True, default = uuid.uuid4)
+  id = Column(Integer, primary_key = True)
   added = Column(DateTime, nullable = False, default = datetime.now)
   edited = Column(DateTime, nullable = False, default = datetime.now, onupdate = datetime.now)
 
-  tenant_id = Column(UUID(), ForeignKey('tenants.id'))
+  tenant_id = Column(Integer, ForeignKey('tenants.id'))
   tenant = relationship(Tenant)
 
-  chore_id = Column(UUID(), ForeignKey('chores.id'))
+  chore_id = Column(Integer, ForeignKey('chores.id'))
   chore = relationship(Chore)
 
-  bundle_id = Column(UUID(), ForeignKey('assignment_bundles.id'))
-  bundle = relationship('AssignmentBundle', back_populates = 'assignment_bundles')
+  bundle_id = Column(Integer, ForeignKey('assignment_bundles.id'))
+  bundle = relationship('AssignmentBundle', back_populates = 'assignments')
 
   is_tenant_home = Column(Boolean, default = True)
 
 class CompletedAssignment(Base):
   __tablename__ = 'completed_assignments'
 
-  id = Column(UUID(), primary_key = True, default = uuid.uuid4)
+  id = Column(Integer, primary_key = True)
   added = Column(DateTime, nullable = False, default = datetime.now)
   edited = Column(DateTime, nullable = False, default = datetime.now, onupdate = datetime.now)
 
-  tenant_id = Column(UUID(), ForeignKey('tenants.id'))
+  tenant_id = Column(Integer, ForeignKey('tenants.id'))
   tenant = relationship(Tenant)
 
-  assignment_id = Column(UUID(), ForeignKey('assignments.id'))
+  assignment_id = Column(Integer, ForeignKey('assignments.id'))
   assignment = relationship(Assignment)
 
 """
@@ -99,7 +96,7 @@ class CompletedAssignment(Base):
 class Bill(Base):
   __tablename__ = 'bills'
 
-  id = Column(UUID(), primary_key = True, default = uuid.uuid4)
+  id = Column(Integer, primary_key = True)
   added = Column(DateTime, nullable = False, default = datetime.now)
   edited = Column(DateTime, nullable = False, default = datetime.now, onupdate = datetime.now)
 
@@ -112,14 +109,14 @@ class Bill(Base):
 class BillEntry(Base):
   __tablename__ = 'bill_entries'
 
-  id = Column(UUID(), primary_key = True, default = uuid.uuid4)
+  id = Column(Integer, primary_key = True)
   added = Column(DateTime, nullable = False, default = datetime.now)
   edited = Column(DateTime, nullable = False, default = datetime.now, onupdate = datetime.now)
 
-  tenant_id = Column(UUID(), ForeignKey('tenants.id'))
+  tenant_id = Column(Integer, ForeignKey('tenants.id'))
   tenant = relationship(Tenant)
 
-  bill_id = Column(UUID(), ForeignKey('bills.id'))
+  bill_id = Column(Integer, ForeignKey('bills.id'))
   bill = relationship(Bill)
 
   contribution = Column(Float, nullable = False)
@@ -131,7 +128,7 @@ class BillEntry(Base):
 class BankAccount(Base):
   __tablename__ = 'bank_accounts'
 
-  id = Column(UUID(), primary_key = True, default = uuid.uuid4)
+  id = Column(Integer, primary_key = True)
   added = Column(DateTime, nullable = False, default = datetime.now)
   edited = Column(DateTime, nullable = False, default = datetime.now, onupdate = datetime.now)
 
@@ -147,7 +144,7 @@ class BankAccount(Base):
 class Transaction(Base):
   __tablename__ = 'transactions'
 
-  id = Column(UUID(), primary_key = True, default = uuid.uuid4)
+  id = Column(Integer, primary_key = True)
   type = Column(Enum(TransactionType), nullable = False)
   added = Column(DateTime, nullable = False, default = datetime.now)
   edited = Column(DateTime, nullable = False, default = datetime.now, onupdate = datetime.now)
@@ -155,6 +152,6 @@ class Transaction(Base):
   amount = Column(Float, nullable = False, default = 0.0)
   description = Column(Text, default = '')
 
-  tenant_id = Column(UUID(), ForeignKey('tenants.id'))
+  tenant_id = Column(Integer, ForeignKey('tenants.id'))
   tenant = relationship(Tenant)
 

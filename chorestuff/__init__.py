@@ -1,5 +1,5 @@
-from common import *
-from sql import *
+from .common import *
+from .sql import *
 
 """
 app = QApplication(sys.argv)
