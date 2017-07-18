@@ -5,6 +5,7 @@ from .decl import *
 class DataHandler:
   def __init__(self):
     self.session = None
+    self.engine = None
 
   """
     Database-related functions.
@@ -13,14 +14,17 @@ class DataHandler:
   def Bind(self, filename):
     self.engine = create_engine('sqlite:///%s' % filename)
     Base.metadata.bind = self.engine
+
     self.DBSession = sessionmaker(bind=self.engine)
     self.session = self.DBSession()
 
   def Create(self, filename):
-    engine = create_engine('sqlite:///%s' % filename)
-    Base.metadata.create_all(engine)
+    self.engine = create_engine('sqlite:///%s' % filename)
+    Base.metadata.create_all(self.engine)
+    Base.metadata.bind = self.engine
 
-    self.Bind(filename)
+    self.DBSession = sessionmaker(bind=self.engine)
+    self.session = self.DBSession()
 
   def Commit(self):
     if self.session:
@@ -103,16 +107,17 @@ class DataHandler:
   """
     Assignments manipulation
   """
+  def GetBundleDate(self, date):
+    return date - timedelta(days=date.isocalendar()[2])
 
   def AddAssignmentBundle(self, date, init = True):
-    # Convert date object to calendar week (integer).
-    week = date.isocalendar()[1]
+    bundle_date = self.GetBundleDate(date)
 
-    bundle = self.session.query(AssignmentBundle).filter(AssignmentBundle.week == week).first()
+    bundle = self.session.query(AssignmentBundle).filter(AssignmentBundle.date == bundle_date).first()
 
     if bundle: return bundle
 
-    new_bundle = AssignmentBundle(week = week)
+    new_bundle = AssignmentBundle(date = bundle_date)
 
     if init:
       self.InitAssignmentBundle(new_bundle)
@@ -140,10 +145,126 @@ class DataHandler:
 
     return bundle
 
-  def GetAssignmentBundleByWeek(self, week):
-    bundle = self.session.query(AssignmentBundle).filter(AssignmentBundle.week == week).first()
+  def GetAssignmentBundleByDate(self, date):
+    bundle_date = self.GetBundleDate(date)
+    bundle = self.session.query(AssignmentBundle).filter(bundle_date).first()
 
     if bundle == None:
-      print('Error getting assignment bundle: week not found.')
+      print('Error getting assignment bundle: date not found.')
 
     return bundle
+
+  def CompleteAssignment(self, id):
+    assignment = self.session.query(Assignment).filter(Assignment.id == id).first()
+
+    new_completion = CompletedAssignment(assignment = assignment)
+
+    self.session.add(new_completion)
+
+    return new_completion
+
+  """
+    Billing manipulation
+  """
+
+  def AddBill(self, end_date, b_date = None):
+    if b_date:
+      begin_date = b_date
+    else:
+      last_bill = self.session.query(Bill).order_by(Bill.end_date.desc()).first()
+
+      if last_bill:
+        begin_date = last_bill.end_date + timedelta(days=1)
+
+    expenses = self.session.query(Transaction).filter(and_(Transaction.type == TransactionType.expense, Transaction.date.between(begin_date, end_date))).all()
+
+    # Computing the shared expenses.
+    expenses_per_tenant = sum([expense.amount for expense in expenses]) / len(living_tenants)
+
+    new_bill = Bill(begin_date = begin_date, end_date = end_date, shared_expenses = expenses_per_tenant)
+
+    self.InitBillEntries(new_bill, expenses)
+
+    self.session.add(new_bill)
+
+    return new_bill
+
+  def InitBillEntries(self, new_bill, expenses):
+    living_tenants = self.GetLivingTenants()
+
+    new_bill_entries = {}
+
+    # Initialize bill entries.
+    for tenant in living_tenants:
+      new_bill_entries[tenant.id] = BillEntry(tenant = tenant, bill = new_bill, contribution = tenant.contribution)
+
+      # Previous debt: get the bill entry for this tenant, associated with
+      # the latest bill by date.
+      # Then, we add any other bills in this time range.
+      last_bill = self.session.query(BillEntry).filter(BillEntry.tenant.id == tenant.id).order_by(BillEntry.bill.end_date.desc()).first()
+
+      if last_bill:
+        new_bill_entries[tenant.id].prev_debt = last_bill.total
+
+      new_bill_entries[tenant.id].prev_debt += sum([transaction.amount for transaction in self.session.query(Transaction).filter(and_(Transaction.date.between(new_bill.begin_date, new_bill.end_date), Transaction.type == TransactionType.bill)).all()])
+
+    # Compute payments.
+    new_bill_entries[transaction.tenant.id].paid = sum([transaction.amount for transaction in self.session.query(Transaction).filter(and_(Transaction.date.between(new_bill.begin_date, new_bill.end_date)), Transaction.type == TransactionType.payment).all()])
+
+    # Computing personal expenses.
+    for expense in expenses:
+      new_bill_entries[expense.tenant.id].p_expenses += expense.amount
+
+    # Computing now the cleaning cost and discounts.
+    bundles = self.session.query(AssignmentBundle).filter(AssignmentBundle.date.between(new_bill.begin_date, new_bill.end_date)).all()
+
+    for bundle in bundles:
+      for assignment in bundle.assignments:
+        # Add chore value if tenant is home (and it's defined).
+        if assignment.is_tenant_home and assignment.tenant:
+          new_bill_entries[assignment.tenant.id].cleaning += assignment.chore.value
+
+        # Add completed chores' values.
+        for completion in assignment.completions:
+          new_bill_entries[completion.tenant.id].discount += assignment.chore.value
+
+    for (key, entry) in new_bill_entries.items():
+      # Compute subtotal: amount to pay considering only this bill.
+      entry.subtotal = entry.contribution + entry.cleaning - entry.discount - entry.p_expenses + new_bill.recurring + new_bill.shared_expenses
+
+      # Total amount to pay considering last bill's total, paid amounts and current bill.
+      entry.total = entry.prev_debt - entry.paid + entry.subtotal
+
+      # Add entry to session.
+      self.session.add(entry)
+
+    return new_bill_entries
+
+  def UpdateBillEntries(self, bill):
+    # Mainly for updating recurring and shared expenses.
+    for entry in bill.entries:
+      entry.subtotal = entry.contribution + entry.cleaning - entry.discount - entry.p_expenses + bill.recurring + bill.shared_expenses
+      entry.total = entry.prev_debt - entry.paid + entry.subtotal
+
+  def ComputeTenantBalance(self, tenant):
+    balance = 0.0
+
+    # Get last bill's total.
+    last_bill = self.session.query(BillEntry).filter(BillEntry.tenant.id == tenant.id).order_by(BillEntry.bill.end_date.desc()).first()
+
+    if last_bill:
+      balance += last_bill.total
+
+    # Add any extra transaction bills since the last actual bill, or since beginning of time.
+    bills = self.session.query(Transaction).filter(and_(Transaction.date.between(last_bill.end_date if last_bill else date(year=1970, month=1, day=1), date.today()), Transaction.type == TransactionType.bill)).all()
+
+    balance += sum([bill.amount for bill in bills])
+
+    # Add payments made since then.
+    # If there is no previous bill, considering everything since the beginning of time.
+    payments = self.session.query(Transaction).filter(and_(Transaction.date.between(last_bill.end_date if last_bill else date(year=1970, month=1, day=1), date.today()), Transaction.type == TransactionType.payment)).all()
+
+    balance -= sum([payment.amount for payments in payment])
+
+    return balance
+

@@ -54,7 +54,7 @@ class AssignmentBundle(Base):
   added = Column(DateTime, nullable = False, default = datetime.now)
   edited = Column(DateTime, nullable = False, default = datetime.now, onupdate = datetime.now)
 
-  week = Column(Integer, nullable = False)
+  date = Column(Date, default = date.today, nullable = False)
 
   assignments = relationship('Assignment', back_populates = 'bundle')
 
@@ -74,6 +74,8 @@ class Assignment(Base):
   bundle_id = Column(Integer, ForeignKey('assignment_bundles.id'))
   bundle = relationship('AssignmentBundle', back_populates = 'assignments')
 
+  completions = relationship('CompletedAssignment', back_populates = 'assignment')
+
   is_tenant_home = Column(Boolean, default = True)
 
 class CompletedAssignment(Base):
@@ -83,11 +85,13 @@ class CompletedAssignment(Base):
   added = Column(DateTime, nullable = False, default = datetime.now)
   edited = Column(DateTime, nullable = False, default = datetime.now, onupdate = datetime.now)
 
+  date = Column(Date, default = date.today)
+
   tenant_id = Column(Integer, ForeignKey('tenants.id'))
   tenant = relationship(Tenant)
 
   assignment_id = Column(Integer, ForeignKey('assignments.id'))
-  assignment = relationship(Assignment)
+  assignment = relationship('Assignment', back_populates = 'completions')
 
 """
   Billing information
@@ -103,8 +107,10 @@ class Bill(Base):
   begin_date = Column(Date, default = date.today, nullable = False)
   end_date = Column(Date, default = date.today, nullable = False)
 
-  recurring = Column(Float, default = 0.0, nullable = False)
-  shared_expenses = Column(Float, default = 0.0, nullable = False)
+  recurring = Column(Float, default = 0.0)
+  shared_expenses = Column(Float, default = 0.0)
+
+  entries = relationship('BillEntry', back_populates = 'bill')
 
 class BillEntry(Base):
   __tablename__ = 'bill_entries'
@@ -117,13 +123,17 @@ class BillEntry(Base):
   tenant = relationship(Tenant)
 
   bill_id = Column(Integer, ForeignKey('bills.id'))
-  bill = relationship(Bill)
+  bill = relationship('Bill', back_populates = 'entries')
 
-  contribution = Column(Float, nullable = False)
-  p_expenses = Column(Float, nullable = False)
-  cleaning = Column(Float, nullable = False)
-  discount = Column(Float, nullable = False)
-  subtotal = Column(Float, nullable = False)
+  contribution = Column(Float, default = 0.0)
+  p_expenses = Column(Float, default = 0.0)
+  cleaning = Column(Float, default = 0.0)
+  discount = Column(Float, default = 0.0)
+  subtotal = Column(Float, default = 0.0)
+
+  prev_debt = Column(Float, default = 0.0)
+  paid = Column(Float, default = 0.0)
+  total = Column(Float, default = 0.0)
 
 class BankAccount(Base):
   __tablename__ = 'bank_accounts'
@@ -148,6 +158,8 @@ class Transaction(Base):
   type = Column(Enum(TransactionType), nullable = False)
   added = Column(DateTime, nullable = False, default = datetime.now)
   edited = Column(DateTime, nullable = False, default = datetime.now, onupdate = datetime.now)
+
+  date = Column(Date, default = date.today, nullable = False)
 
   amount = Column(Float, nullable = False, default = 0.0)
   description = Column(Text, default = '')
