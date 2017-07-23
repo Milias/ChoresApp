@@ -14,8 +14,7 @@ class Tenant(Base):
   __tablename__ = 'tenants'
 
   id = Column(Integer, primary_key = True)
-  added = Column(DateTime, nullable = False, default = datetime.now)
-  edited = Column(DateTime, nullable = False, default = datetime.now, onupdate = datetime.now)
+  added = Column(DateTime)
 
   name = Column(String(256), default = '', nullable = False)
   full_name = Column(String(256), default = '')
@@ -27,6 +26,10 @@ class Tenant(Base):
 
   is_living = Column(Boolean, default = True, nullable = False)
   is_home = Column(Boolean, default = True, nullable = False)
+  is_manager = Column(Boolean, default = False, nullable = False)
+
+  def __repr__(self):
+    return 'Name: %s' % (self.name,)
 
 """
   Chore information
@@ -36,12 +39,14 @@ class Chore(Base):
   __tablename__ = 'chores'
 
   id = Column(Integer, primary_key = True)
-  added = Column(DateTime, nullable = False, default = datetime.now)
-  edited = Column(DateTime, nullable = False, default = datetime.now, onupdate = datetime.now)
+  added = Column(DateTime)
 
   name = Column(String(256), default = '', nullable = False)
   description = Column(Text, default = '')
   value = Column(Float, default = 2.50, nullable = False)
+
+  def __repr__(self):
+    return 'Chore: %s (%4.2f)' % (self.name, self.value)
 
 """
   Assignments information
@@ -62,8 +67,7 @@ class Assignment(Base):
   __tablename__ = 'assignments'
 
   id = Column(Integer, primary_key = True)
-  added = Column(DateTime, nullable = False, default = datetime.now)
-  edited = Column(DateTime, nullable = False, default = datetime.now, onupdate = datetime.now)
+  added = Column(DateTime)
 
   tenant_id = Column(Integer, ForeignKey('tenants.id'))
   tenant = relationship(Tenant)
@@ -78,12 +82,14 @@ class Assignment(Base):
 
   is_tenant_home = Column(Boolean, default = True)
 
+  def __repr__(self):
+    return '\'%s\' (%s) assigned%s%s' % (self.chore.name, self.bundle.date, ' to %s' % self.tenant.name if self.tenant else '', (' and completed by %s' % ', '.join(['%s (%s)' % (c.tenant.name, c.date) for c in self.completions])) if len(self.completions) else '')
+
 class CompletedAssignment(Base):
   __tablename__ = 'completed_assignments'
 
   id = Column(Integer, primary_key = True)
-  added = Column(DateTime, nullable = False, default = datetime.now)
-  edited = Column(DateTime, nullable = False, default = datetime.now, onupdate = datetime.now)
+  added = Column(DateTime)
 
   date = Column(Date, default = date.today)
 
@@ -93,6 +99,9 @@ class CompletedAssignment(Base):
   assignment_id = Column(Integer, ForeignKey('assignments.id'))
   assignment = relationship('Assignment', back_populates = 'completions')
 
+  def __repr__(self):
+    return '%10s: \'%s\' completed by %s' % (self.date, self.assignment.chore.name, self.tenant.name)
+
 """
   Billing information
 """
@@ -101,11 +110,10 @@ class Bill(Base):
   __tablename__ = 'bills'
 
   id = Column(Integer, primary_key = True)
-  added = Column(DateTime, nullable = False, default = datetime.now)
-  edited = Column(DateTime, nullable = False, default = datetime.now, onupdate = datetime.now)
+  added = Column(DateTime)
 
-  begin_date = Column(Date, default = date.today, nullable = False)
-  end_date = Column(Date, default = date.today, nullable = False)
+  begin_date = Column(Date)
+  end_date = Column(Date)
 
   recurring = Column(Float, default = 0.0)
   shared_expenses = Column(Float, default = 0.0)
@@ -116,8 +124,8 @@ class BillEntry(Base):
   __tablename__ = 'bill_entries'
 
   id = Column(Integer, primary_key = True)
-  added = Column(DateTime, nullable = False, default = datetime.now)
-  edited = Column(DateTime, nullable = False, default = datetime.now, onupdate = datetime.now)
+  added = Column(DateTime)
+  date = Column(Date)
 
   tenant_id = Column(Integer, ForeignKey('tenants.id'))
   tenant = relationship(Tenant)
@@ -135,12 +143,14 @@ class BillEntry(Base):
   paid = Column(Float, default = 0.0)
   total = Column(Float, default = 0.0)
 
+  def __repr__(self):
+    return '[%10s, %10s]: %4.2f, %4.2f, %4.2f, %4.2f, %4.2f, %4.2f, %4.2f, %4.2f,' % (self.date, self.tenant.name, self.contribution, self.p_expenses, self.cleaning, self.discount, self.subtotal, self.prev_debt, self.paid, self.total)
+
 class BankAccount(Base):
   __tablename__ = 'bank_accounts'
 
   id = Column(Integer, primary_key = True)
-  added = Column(DateTime, nullable = False, default = datetime.now)
-  edited = Column(DateTime, nullable = False, default = datetime.now, onupdate = datetime.now)
+  added = Column(DateTime)
 
   bank_name = Column(String(256), default = '', nullable = False)
   account = Column(String(256), default = '', nullable = False)
@@ -156,8 +166,7 @@ class Transaction(Base):
 
   id = Column(Integer, primary_key = True)
   type = Column(Enum(TransactionType), nullable = False)
-  added = Column(DateTime, nullable = False, default = datetime.now)
-  edited = Column(DateTime, nullable = False, default = datetime.now, onupdate = datetime.now)
+  added = Column(DateTime)
 
   date = Column(Date, default = date.today, nullable = False)
 
