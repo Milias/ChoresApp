@@ -110,7 +110,7 @@ class DataHandler:
   def GetBundleDate(self, date):
     return date - timedelta(days=date.isocalendar()[2])
 
-  def AddAssignmentBundle(self, date, init = True, chores = {}):
+  def AddAssignmentBundle(self, date, init = True, chores = {}, extra_chores = []):
     # Chores is a dictionary specifying chores: chores[tenant.id] = chore
     bundle_date = self.GetBundleDate(date)
 
@@ -121,15 +121,19 @@ class DataHandler:
     new_bundle = AssignmentBundle(added = datetime.now(), date = bundle_date)
 
     if init:
-      self.InitAssignmentBundle(new_bundle, chores)
+      self.InitAssignmentBundle(new_bundle, chores, extra_chores)
 
     self.session.add(new_bundle)
 
     return new_bundle
 
-  def InitAssignmentBundle(self, new_bundle, chores = {}):
+  def InitAssignmentBundle(self, new_bundle, chores = {}, extra_chores = []):
     for tenant in self.GetLivingTenants():
       new_assignment = Assignment(added = datetime.now(), tenant = tenant, bundle = new_bundle, is_tenant_home = tenant.is_home, chore = chores[tenant.id] if tenant.id in chores else None)
+      self.session.add(new_assignment)
+
+    for chore in extra_chores:
+      new_assignment = Assignment(added = datetime.now(), tenant = None, bundle = new_bundle, chore = chore)
       self.session.add(new_assignment)
 
   def GetAllAssignmentBundles(self, sorted = False):
@@ -236,12 +240,13 @@ class DataHandler:
     for bundle in bundles:
       for assignment in bundle.assignments:
         # Add chore value if tenant is home (and it's defined).
-        if assignment.is_tenant_home and assignment.tenant:
+        if assignment.is_tenant_home and assignment.tenant and assignment.chore:
           new_bill_entries[assignment.tenant.id].cleaning += assignment.chore.value
 
         # Add completed chores' values.
         for completion in assignment.completions:
-          new_bill_entries[completion.tenant.id].discount -= assignment.chore.value
+          if assignment.chore:
+            new_bill_entries[completion.tenant.id].discount -= assignment.chore.value
 
     # Compute contribution for managers.
     manager_contribution = 0.0

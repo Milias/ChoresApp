@@ -11,14 +11,26 @@
 \begin{center}
   \large
   \textsc{Chores}\\
-  \input{date.tex}\\[0.5cm]
+  Week \textbf{\VAR{bundle.date.isocalendar()[1]}} --- From \textbf{\VAR{bundle.date}} to \textbf{\VAR{bundle.date + timedelta(days=6)}}\\[0.5cm]
   \LARGE
 
   \begin{tabularx}{\textwidth}{|c|c|X|c|c|}
     \hline
     \textbf{Home} & \textbf{Name} & \centering\textbf{Chore} & \textbf{Date} & \textbf{Initials} \\ \hline
     \hline
-    \input{data.tex}
+    \BLOCK{ for assignment in bundle.assignments }
+      \BLOCK{- if assignment.tenant -}
+        \VAR{'  '} \VAR{ '%3s' % ('Yes' if assignment.is_tenant_home else 'No') } & \VAR{'%15s' % assignment.tenant.name} & \VAR{'%20s' % (assignment.chore.name if assignment.chore else '(None)')} & \phantom{---------------} & \\[0.25cm] \hline \VAR{'\n    '}
+      \BLOCK{- endif -}
+    \BLOCK{ endfor }
+    \BLOCK{- for assignment in bundle.assignments -}
+      \BLOCK{- if assignment.tenant == None -}
+        \VAR{'      '} & \VAR{'%15s' % '(anyone)'} & \VAR{'%20s' % assignment.chore.name} & \phantom{---------------} & \\[0.15cm] \hline \VAR{'\n    '}
+      \BLOCK{- endif -}
+    \BLOCK{- endfor -}
+    \BLOCK{- for i in range(max(0, 13 - len(bundle.assignments))) -}
+      \VAR{'  '} & & & \phantom{---------------} & \\[0.15cm] \hline \VAR{'\n    '}
+    \BLOCK{- endfor -}
   \end{tabularx}
 \end{center}
 

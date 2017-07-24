@@ -144,7 +144,7 @@ class BillEntry(Base):
   total = Column(Float, default = 0.0)
 
   def __repr__(self):
-    return '[%10s, %10s]: %4.2f, %4.2f, %4.2f, %4.2f, %4.2f, %4.2f, %4.2f, %4.2f,' % (self.date, self.tenant.name, self.contribution, self.p_expenses, self.cleaning, self.discount, self.subtotal, self.prev_debt, self.paid, self.total)
+    return '[%10s, %10s]: (%4.2f, %4.2f) %4.2f, %4.2f, %4.2f, %4.2f, %4.2f, %4.2f, %4.2f, %4.2f,' % (self.date, self.tenant.name, self.bill.recurring, self.bill.shared_expenses, self.contribution, self.p_expenses, self.cleaning, self.discount, self.subtotal, self.prev_debt, self.paid, self.total)
 
 class BankAccount(Base):
   __tablename__ = 'bank_accounts'
