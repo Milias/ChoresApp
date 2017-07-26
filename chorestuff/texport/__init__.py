@@ -23,3 +23,7 @@ class TeXporter:
   def NewAssignmentsBundle(self, bundle):
     template = self.Env.get_template('chorestuff/tex/chores-template.tex')
     return template.render(bundle = bundle, timedelta=timedelta, len=len, max=max)
+
+  def NewBill(self, bill):
+    template = self.Env.get_template('chorestuff/tex/bill-template.tex')
+    return template.render(bill = bill, abs = abs)

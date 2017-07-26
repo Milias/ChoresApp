@@ -12,6 +12,8 @@ chores_names = ['Sweep hallway', 'Garbage', 'Clean filter', 'Do stuff']
 chores_dict = {}
 tenants = []
 
+bacc = dh.AddBankAccount(bank_name = 'ING', account = 'NL12INGB0001911092', holder = 'Studentenhuis Warande', location = 'Zeist')
+
 for t_name, c_name in zip(tenant_names, chores_names):
   tenants.append(dh.AddTenant(t_name))
 
@@ -36,23 +38,16 @@ for a in bundle.assignments:
     if not a.tenant.name == 'Francisco':
       dh.CompleteAssignment(a, tenant = a.tenant, date = date.today())
 
-print(tex.NewAssignmentsBundle(bundle))
+#print(tex.NewAssignmentsBundle(bundle))
 
 bill = dh.AddBill(date.today(), recurring = 10.0)
+
+print(tex.NewBill(bill))
 
 dh.AddTransaction(type = TransactionType.payment, tenant = tenants[1], date = date.today() + timedelta(days=3), amount = 12.5)
 dh.AddTransaction(type = TransactionType.expense, tenant = tenants[2], date = date.today() + timedelta(days=3), amount = 4.0)
 
-bill2 = dh.AddBill(date.today() + timedelta(days=15), recurring = 12.0)
+bill2 = dh.AddBill(date.today() + timedelta(days=15), recurring = 3.0)
 
-print('First')
-print('%s to %s' % (bill.begin_date, bill.end_date))
-for entry in bill.entries:
-  print(entry)
+print(tex.NewBill(bill2))
 
-print('\nSecond')
-print('%s to %s' % (bill2.begin_date, bill2.end_date))
-for entry in bill2.entries:
-  print(entry)
-
-dh.Quit()

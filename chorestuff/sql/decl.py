@@ -106,6 +106,17 @@ class CompletedAssignment(Base):
   Billing information
 """
 
+class BankAccount(Base):
+  __tablename__ = 'bank_accounts'
+
+  id = Column(Integer, primary_key = True)
+  added = Column(DateTime)
+
+  bank_name = Column(String(256), default = '', nullable = False)
+  account = Column(String(256), default = '', nullable = False)
+  holder = Column(String(256), default = '', nullable = False)
+  location = Column(String(256), default = '', nullable = False)
+
 class Bill(Base):
   __tablename__ = 'bills'
 
@@ -117,6 +128,9 @@ class Bill(Base):
 
   recurring = Column(Float, default = 0.0)
   shared_expenses = Column(Float, default = 0.0)
+
+  bank_account_id = Column(Integer, ForeignKey('bank_accounts.id'))
+  bank_account = relationship(BankAccount)
 
   entries = relationship('BillEntry', back_populates = 'bill')
 
@@ -143,19 +157,10 @@ class BillEntry(Base):
   paid = Column(Float, default = 0.0)
   total = Column(Float, default = 0.0)
 
+  balance = Column(Float, default = 0.0)
+
   def __repr__(self):
     return '[%10s, %10s]: (%4.2f, %4.2f) %4.2f, %4.2f, %4.2f, %4.2f, %4.2f, %4.2f, %4.2f, %4.2f,' % (self.date, self.tenant.name, self.bill.recurring, self.bill.shared_expenses, self.contribution, self.p_expenses, self.cleaning, self.discount, self.subtotal, self.prev_debt, self.paid, self.total)
-
-class BankAccount(Base):
-  __tablename__ = 'bank_accounts'
-
-  id = Column(Integer, primary_key = True)
-  added = Column(DateTime)
-
-  bank_name = Column(String(256), default = '', nullable = False)
-  account = Column(String(256), default = '', nullable = False)
-  holder = Column(String(256), default = '', nullable = False)
-  location = Column(String(256), default = '', nullable = False)
 
 """
   Transaction information

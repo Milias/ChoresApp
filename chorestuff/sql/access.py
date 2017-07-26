@@ -193,7 +193,12 @@ class DataHandler:
         # Otherwise start from the beginning of time.
         begin_date = date(year=1970, month=1, day=1)
 
-    new_bill = Bill(added = datetime.now(), begin_date = begin_date, end_date = end_date, **kwargs)
+    if not 'bank_account' in kwargs:
+      bank_account = self.session.query(BankAccount).first()
+      new_bill = Bill(added = datetime.now(), begin_date = begin_date, end_date = end_date, bank_account = bank_account, **kwargs)
+    else:
+      new_bill = Bill(added = datetime.now(), begin_date = begin_date, end_date = end_date, **kwargs)
+
     self.session.add(new_bill)
     self.InitBillEntries(new_bill)
     return new_bill
@@ -309,3 +314,26 @@ class DataHandler:
     self.session.add(new_transaction)
 
     return new_transaction
+
+  """
+    Bank account manipulation
+  """
+
+  def AddBankAccount(self, **kwargs):
+    new_bank_account = BankAccount(added = datetime.now(), **kwargs)
+    self.session.add(new_bank_account)
+
+    return new_bank_account
+
+  def GetBankAccount(self, id):
+    bank_account = self.session.query(BankAccount).filter(BankAccount.id == id).first()
+
+    if bank_account == None:
+      print('Error getting bank account: id not found.')
+
+    return bank_account
+
+  def RemoveBankAccount(self, id):
+    bank_account = self.session.query(BankAccount).filter(BankAccount.id == id).first()
+
+    if bank_account: self.session.delete(bank_account)
