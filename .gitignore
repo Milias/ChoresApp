@@ -22,3 +22,6 @@ bank_details.tex
 
 # Data files
 *.db
+
+# Vim files
+*.swp
