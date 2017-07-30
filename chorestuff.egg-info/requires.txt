@@ -1,5 +1,0 @@
-sqlalchemy
-jinja2
-flask
-flask_wtf
-wtforms

@@ -16,6 +16,7 @@ bank_details.tex
 # Python files
 *.pyc
 venv/*
+*.egg-info/*
 
 # MacOS files
 .DS_Store
