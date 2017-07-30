@@ -12,6 +12,8 @@ bank_details.tex
 
 # Config files
 *.json
+*/data/*
+*/config/*
 
 # Python files
 *.pyc
