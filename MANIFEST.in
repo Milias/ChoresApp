@@ -1,5 +1,9 @@
 graft chorestuff/common
 graft chorestuff/sql
-graft chorestuff/datahandler
 graft chorestuff/config
+graft chorestuff/tex
+graft chorestuff/texport
+graft chorestuff/tests
+graft chorestuff/static
+graft chorestuff/templates
 

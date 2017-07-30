@@ -22,8 +22,13 @@ class TeXporter:
 
   def NewAssignmentsBundle(self, bundle):
     template = self.Env.get_template('chorestuff/tex/chores-template.tex')
-    return template.render(bundle = bundle, timedelta=timedelta, len=len, max=max)
+    return template.render(bundle = bundle, tex_escape = tex_escape, timedelta = timedelta, len = len, max = max)
 
   def NewBill(self, bill):
     template = self.Env.get_template('chorestuff/tex/bill-template.tex')
-    return template.render(bill = bill, abs = abs)
+    return template.render(bill = bill, tex_escape = tex_escape, abs = abs)
+
+  def NewExpensesTable(self, bill):
+    template = self.Env.get_template('chorestuff/tex/expenses-table.tex')
+    return template.render(bill = bill, tex_escape = tex_escape)
+

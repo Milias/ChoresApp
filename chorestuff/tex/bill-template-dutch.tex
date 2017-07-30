@@ -1,0 +1,69 @@
+\documentclass[12pt]{article}
+
+\usepackage[a4paper,margin=1.0cm,landscape]{geometry}
+\usepackage[utf8x]{inputenc}
+\usepackage[T1]{fontenc}
+\usepackage[cm]{fullpage}
+\usepackage{tabularx}
+\usepackage{eurosym}
+
+\begin{document}
+\pagenumbering{gobble}
+\begin{center}
+  \large
+  \textsc{Invoice}\\
+  \input{date.tex}\\[0.5cm]
+\end{center}
+
+\begin{center}
+  \LARGE
+  \begin{tabularx}{0.8\textwidth}{|X|c|c|c|c|}
+    \hline
+    {\large\textbf{Naam}} &
+    {\large\textbf{Subtotaal}} &
+    {\large\textbf{Schuld}\footnote{\textbf{Schuld.} Schuld sinds vorige rekening.}} &
+    {\large\textbf{Betaald}\footnote{\textbf{Betaald.} Betaald sinds vorige keer.}} &
+    {\large\textbf{Te Betalen}} \\ \hline
+    \hline
+    \BLOCK{ for entry in bill.entries -}
+      \VAR{'  '} \VAR{ '%15s' % tex_escape(entry.tenant.name) } & \VAR{ '%6.2f' % entry.subtotal if abs(entry.subtotal) > 0.001 else '%6s' % '---' } & \VAR{ '%6.2f' % entry.prev_debt } & \VAR{ '%6.2f' % entry.paid } & \VAR{ '\emph{%6.2f}' % entry.total } \\[0.25cm] \hline \VAR{'\n    '}
+    \BLOCK{- endfor -}
+  \end{tabularx}
+\end{center}
+
+\begin{center}
+  \small
+  \begin{tabular}{|c|c|c|c|}
+    \hline
+    \textbf{Bank} &
+    \textbf{Rekeningnummer} &
+    \textbf{t.n.v.} &
+    \textbf{te} \\ \hline
+    \BLOCK{ if bill.bank_account -}
+      \VAR{ bill.bank_account.bank_name } & \VAR{ bill.bank_account.account } & \VAR{ bill.bank_account.holder } & \VAR{ bill.bank_account.location } \\ \hline
+    \BLOCK{- endif -}
+  \end{tabular}
+\end{center}
+
+\newpage
+
+\begin{center}
+  \LARGE
+  \begin{tabularx}{0.95\textwidth}{|X|c|c|c|c|c|c|c|}
+    \hline
+    {\large\textbf{Naam}} &
+    {\large\textbf{Vaste kosten}} &
+    {\large\textbf{Inkopen}\footnote{\textbf{Huisinkopen.} Totaal van de inkopen verdeeld over de bewoners.}} &
+    {\large\textbf{Bijdrage}} &
+    {\large\textbf{Uitgaven}\footnote{\textbf{Inkopen gedaan.} Uitgaven aan huisinkopen.}} &
+    {\large\textbf{Schoonmaakkosten}} &
+    {\large\textbf{Korting}\footnote{\textbf{Korting voor gedane taken.} \EUR{0.00} betekent dat er geen taken gedaan zijn. Elke taak is \EUR{2.50} waard.}} &
+    {\large\textbf{Subtotaal}} \\ \hline
+    \hline
+    \BLOCK{ for entry in bill.entries -}
+      \VAR{'  '} \VAR{ '%15s' % tex_escape(entry.tenant.name) } & \VAR{ '%6.2f' % entry.bill.recurring } & \VAR{ '%6.2f' % entry.bill.shared_expenses } & \VAR{ '%6.2f' % entry.contribution } & \VAR{ '%6.2f' % entry.p_expenses } & \VAR{ '%6.2f' % entry.cleaning } & \VAR{ '%6.2f' % entry.discount } & \VAR{ '%6.2f' % entry.subtotal } \\[0.25cm] \hline \VAR{'\n    '}
+    \BLOCK{- endfor -}
+  \end{tabularx}
+\end{center}
+
+\end{document}

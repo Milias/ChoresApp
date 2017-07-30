@@ -108,7 +108,7 @@ class DataHandler:
     Assignments manipulation
   """
   def GetBundleDate(self, date):
-    return date - timedelta(days=date.isocalendar()[2])
+    return date - timedelta(days=date.isocalendar()[2] - 1)
 
   def AddAssignmentBundle(self, date, init = True, chores = {}, extra_chores = []):
     # Chores is a dictionary specifying chores: chores[tenant.id] = chore
@@ -168,11 +168,38 @@ class DataHandler:
     for assignment in bundle.assignments:
       assignment.chore = chores[assignment.tenant.id] if assignment.tenant.id in chores else None
 
+  def AddExtraChores(self, bundle, extra_chores):
+    for chore in extra_chores:
+      new_assignment = Assignment(added = datetime.now(), tenant = None, bundle = bundle, chore = chore)
+      self.session.add(new_assignment)
 
   def CompleteAssignment(self, assignment, **kwargs):
     new_completion = CompletedAssignment(added = datetime.now(), assignment = assignment, **kwargs)
     self.session.add(new_completion)
     return new_completion
+
+  def CycleBundle(self, bundle_list, repeat = 0):
+    if repeat:
+      if isinstance(bundle_list, list):
+        bundle = bundle_list[-1]
+      else:
+        bundle = bundle_list
+        bundle_list = [bundle_list]
+
+      old_assignments = sorted([assignment for assignment in bundle.assignments if assignment.tenant], key = lambda a: a.tenant.name, reverse = True)
+
+      chores = {}
+
+      for i, assignment in enumerate(old_assignments):
+        chores[assignment.tenant.id] = old_assignments[i+1 if i+1 < len(old_assignments) else 0].chore
+
+      new_bundle = self.AddAssignmentBundle(bundle.date + timedelta(days=7), chores = chores)
+
+      bundle_list.append(new_bundle)
+
+      return self.CycleBundle(bundle_list, repeat = repeat - 1)
+    else:
+      return bundle_list
 
   """
     Billing manipulation

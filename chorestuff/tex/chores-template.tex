@@ -11,7 +11,7 @@
 \begin{center}
   \large
   \textsc{Chores}\\
-  Week \textbf{\VAR{bundle.date.isocalendar()[1]}} --- From \textbf{\VAR{bundle.date}} to \textbf{\VAR{bundle.date + timedelta(days=6)}}\\[0.5cm]
+  Week \textbf{\VAR{ bundle.date.isocalendar()[1] }} --- From \textbf{\VAR{ bundle.date }} to \textbf{\VAR{ bundle.date + timedelta(days=6) }}\\[0.5cm]
   \LARGE
 
   \begin{tabularx}{\textwidth}{|c|c|X|c|c|}
@@ -20,7 +20,7 @@
     \hline
     \BLOCK{ for assignment in bundle.assignments }
       \BLOCK{- if assignment.tenant -}
-        \VAR{'  '} \VAR{ '%3s' % ('Yes' if assignment.is_tenant_home else 'No') } & \VAR{'%15s' % assignment.tenant.name} & \VAR{'%20s' % (assignment.chore.name if assignment.chore else '(None)')} & \phantom{---------------} & \\[0.25cm] \hline \VAR{'\n    '}
+        \VAR{'  '} \VAR{ '%3s' % ('Yes' if assignment.is_tenant_home else 'No') } & \VAR{ '%15s' % tex_escape(assignment.tenant.name) } & \VAR{ '%20s' % (tex_escape(assignment.chore.name) if assignment.chore else '(None)') } & \phantom{---------------} & \\[0.25cm] \hline \VAR{ '\n    ' }
       \BLOCK{- endif -}
     \BLOCK{ endfor }
     \BLOCK{- for assignment in bundle.assignments -}
