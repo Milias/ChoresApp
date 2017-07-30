@@ -1,5 +1,4 @@
 # Latex files
-
 *.aux
 *.fdb_latexmk
 *.fls
@@ -16,6 +15,7 @@ bank_details.tex
 
 # Python files
 *.pyc
+venv/*
 
 # MacOS files
 .DS_Store
