@@ -28,3 +28,4 @@ venv/*
 
 # Vim files
 *.swp
+*.vim
