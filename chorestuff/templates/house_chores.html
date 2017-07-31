@@ -1,0 +1,26 @@
+{% extends 'house.html' %}
+{% from 'macros.html' import render_chore %}
+
+{% block title %} - House/Chores{% endblock %}
+
+{% block house_body %}
+  <div class='table-responsive center-block' style='max-width:768px'>
+    <table class='table table-condensed table-tenants'>
+      <tr>
+        <th>Name</th>
+        <th class='text-center'>Value</th>
+        <th class='text-center'>More</th>
+      </tr>
+      {% for chore in chores %}
+        {{ render_chore(dh, chore) }}
+      {% endfor %}
+      <tr>
+        <td class='text-center' colspan="6">
+          <a href='/house/chores/edit' role='button' class='btn btn-default' style='width:85%;'>
+            <i class='fa fa-2x fa-plus'></i>
+          </a>
+        </th>
+    </table>
+  </div>
+{% endblock %}
+

@@ -14,3 +14,12 @@ $(document).ready(function() {
   });
 });
 
+$(document).ready(function() {
+  $('.delete-chore').click(function() {
+    if (confirm('Delete chore?')) {
+      return true;
+    }
+    return false;
+  });
+});
+

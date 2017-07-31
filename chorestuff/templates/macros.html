@@ -46,3 +46,22 @@
   </tr>
 {% endmacro %}
 
+{% macro render_chore(dh, chore) %}
+  <tr>
+    <td style='vertical-align:middle'>
+      {{ chore.name }}
+    </td>
+    <td class='text-center' style='vertical-align:middle'>
+      {{ '%.2f' % chore.value }} <i class='fa fa-eur'></i>
+    </td>
+    <td class='text-center' style='vertical-align:middle'>
+      <a href='/house/chores/edit/{{ chore.id }}' role='button' class='btn btn-default'>
+        <i class='fa fa-sliders'></i>
+      </a>
+      <a href='/house/chores/del/{{ chore.id }}' role='button' class='btn btn-default delete-chore'>
+        <i class='fa fa-trash'></i>
+      </a>
+    </td>
+  </tr>
+{% endmacro %}
+

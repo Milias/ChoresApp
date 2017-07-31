@@ -1,0 +1,19 @@
+{% extends 'house.html' %}
+{% from 'macros.html' import render_form_input_basic, render_form_input_checkbox %}
+
+{% block house_body %}
+  <form class='form-horizontal' method="POST" action="/house/chores/edit">
+    {{ form.csrf_token }}
+
+    <div class='container' style='max-width:768px'>
+      {{ form.id() }}
+      {{ render_form_input_basic(form.name, 'fa-info-circle', 'Name') }}
+      {{ render_form_input_basic(form.value, 'fa-eur', 'Value') }}
+      <div class='text-center'>
+        <button type="submit" class="btn btn-default">Save</button>
+        <a href='/house/chores' role='button' class="btn btn-default">Cancel</a>
+      </div>
+  </form>
+  </div>
+{% endblock %}
+

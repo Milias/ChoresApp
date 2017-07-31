@@ -10,6 +10,12 @@ class FormEditTenant(RedirectForm):
   is_home = BooleanField('Home: ', default=True)
   is_manager = BooleanField('Manager: ', default=False)
 
+class FormEditChore(RedirectForm):
+  id = HiddenField('Id:')
+  name = StringField('Name: ', validators=[InputRequired(), Length(max=256)])
+  value = DecimalField('Value: ', validators=[InputRequired()])
+  description = TextAreaField('Description:', validators=[Optional()])
+
 @app.route('/house/tenants')
 def HouseTenants():
   dh = get_session()
@@ -56,3 +62,42 @@ def HouseTenantsDelete(tenant_id):
   dh.Commit()
 
   return redirect('/house/tenants')
+
+@app.route('/house/chores')
+def HouseChores():
+  dh = get_session()
+  chores = dh.GetAllChores()
+  return render_template('house_chores.html', dh = dh, chores = chores)
+
+@app.route('/house/chores/edit', defaults = {'chore_id': 0}, methods = ('GET', 'POST'))
+@app.route('/house/chores/edit/<int:chore_id>', methods = ('GET', 'POST'))
+def HouseChoresEdit(chore_id):
+  dh = get_session()
+  form = FormEditChore()
+
+  chore = None
+  if chore_id:
+    chore = dh.GetChore(chore_id)
+    if chore:
+      for attr in ('id', 'name', 'value', 'description'):
+        setattr(getattr(form, attr), 'data', getattr(chore, attr))
+
+  if form.validate_on_submit():
+    chore = dh.GetChore(form.id.data)
+    if chore == None:
+      chore = dh.AddChore(form.name.data, value = form.value.data)
+      flash('Chore added.', 'success')
+    else:
+      for attr in ('name', 'value', 'description'):
+        setattr(chore, attr, getattr(form, attr).data)
+      flash('Chore information modified.', 'success')
+
+    dh.Commit()
+    return redirect('/house/chores')
+
+  for field in form:
+    for error in field.errors:
+      flash('%s: %s' % (field.name, error), 'warning')
+
+  return render_template('house_chores_edit.html', dh = dh, chore = chore, form = form)
+
