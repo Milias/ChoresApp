@@ -3,26 +3,26 @@
 
 {% block title %} - House/Tenants{% endblock %}
 
-{% block body %}
-  <div class='container-fluid' style='max-width:768px'>
-    <div class='row' style='min-height:100px'>
-      <div class='text-center col-md-12'>
-        <h1>Tenants</h1>
-      </div>
-    </div>
-  </div>
+{% block house_body %}
   <div class='table-responsive center-block' style='max-width:768px'>
-    <table class='table table-stripped table-hover table-condensed'>
+    <table class='table table-condensed table-tenants'>
       <tr>
         <th>Name</th>
         <th class='text-center'>Balance</th>
         <th class='text-center'>Living</th>
         <th class='text-center'>Home</th>
         <th class='text-center'>Manager</th>
+        <th class='text-center'>More</th>
       </tr>
       {% for tenant in tenants %}
         {{ render_tenant(dh, tenant) }}
       {% endfor %}
+      <tr>
+        <td class='text-center' colspan="6">
+          <a href='/house/tenants/edit' role='button' class='btn btn-default' style='width:85%;'>
+            <i class='fa fa-2x fa-plus'></i>
+          </a>
+        </th>
     </table>
   </div>
 {% endblock %}

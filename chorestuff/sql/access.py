@@ -69,12 +69,8 @@ class DataHandler:
     Tenant manipulation
   """
 
-  def AddTenant(self, name, **kwargs):
-    tenant = self.session.query(Tenant).filter(Tenant.name == name).first()
-
-    if tenant: return tenant
-
-    new_tenant = Tenant(added = datetime.now(), name = name, **kwargs)
+  def AddTenant(self, **kwargs):
+    new_tenant = Tenant(added = datetime.now(), **kwargs)
     self.session.add(new_tenant)
 
     return new_tenant

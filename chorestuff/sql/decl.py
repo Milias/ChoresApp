@@ -17,12 +17,7 @@ class Tenant(Base):
   added = Column(DateTime)
 
   name = Column(String(256), default = '', nullable = False)
-  full_name = Column(String(256), default = '')
   email = Column(String(256), default = '')
-  room = Column(Integer)
-
-  # Contribution per month (regardless of weeks)
-  contribution = Column(Float, default = 0.0, nullable = False)
 
   is_living = Column(Boolean, default = True, nullable = False)
   is_home = Column(Boolean, default = True, nullable = False)

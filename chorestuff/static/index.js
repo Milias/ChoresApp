@@ -4,3 +4,13 @@
   };
   return this;
 })(jQuery)
+
+$(document).ready(function() {
+  $('.delete-tenant').click(function() {
+    if (confirm('Delete tenant?')) {
+      return true;
+    }
+    return false;
+  });
+});
+

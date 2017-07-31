@@ -10,6 +10,7 @@ setup(
     'flask',
     'flask_wtf',
     'wtforms',
+    'requests',
   ],
 )
 

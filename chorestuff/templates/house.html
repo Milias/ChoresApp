@@ -2,3 +2,10 @@
 
 {% block title %} - House {% endblock %}
 
+{% block head %}
+  <link rel='stylesheet' href='/static/house.css'>
+{% endblock %}
+
+{% block body %}
+  {% block house_body %}{% endblock %}
+{% endblock %}

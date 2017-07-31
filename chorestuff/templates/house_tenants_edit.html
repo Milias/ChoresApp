@@ -1,0 +1,22 @@
+{% extends 'house.html' %}
+{% from 'macros.html' import render_form_input_basic, render_form_input_checkbox %}
+
+{% block house_body %}
+  <form class='form-horizontal' method="POST" action="/house/tenants/edit">
+    {{ form.csrf_token }}
+
+    <div class='container' style='max-width:768px'>
+      {{ form.id() }}
+      {{ render_form_input_basic(form.name, 'fa-user', 'Name') }}
+      {{ render_form_input_basic(form.email, 'fa-envelope', 'Email address') }}
+      {{ render_form_input_checkbox(form.is_living, 'fa-home') }}
+      {{ render_form_input_checkbox(form.is_home, 'fa-plane') }}
+      {{ render_form_input_checkbox(form.is_manager, 'fa-user-circle-o') }}
+      <div class='text-center'>
+        <button type="submit" class="btn btn-default">Save</button>
+        <a href='/house/tenants' role='button' class="btn btn-default">Cancel</a>
+      </div>
+  </form>
+  </div>
+{% endblock %}
+

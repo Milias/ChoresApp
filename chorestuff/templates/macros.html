@@ -1,29 +1,48 @@
-{% macro render_form_input(Field, Icon = '',  Placeholder = '', ExtraClasses = '', Size = 20) -%}
-  <div class='input-group margin-bottom-sm'>
-    <span class="input-group-addon">
-      <i class="fa {{ Icon }} fa-fw"></i>
-    </span>
-    <span class='sr-only'>{{ Field.label }}</span>
-    {{ Field(size=Size, class='form-control', placeholder=Placeholder) }}
+{% macro render_form_input_basic(field, icon = '',  placeholder = '', size = 20) -%}
+  <div class='input-group'>
+    <i class="input-group-addon">
+      <i class="fa {{ icon }} fa-fw"></i>
+    </i>
+    <i class='sr-only'>{{ field.label }}</i>
+    {{ field(size=size, class='form-control', placeholder=placeholder) }}
+  </div>
+{%- endmacro %}
+
+{% macro render_form_input_checkbox(field, icon = '', size = 12) -%}
+  <div class='input-group'>
+    <i class="input-group-addon">
+      <i class="fa {{ icon }} fa-fw"></i>
+    </i>
+    <i class='sr-only'>{{ field.label }}</i>
+    {{ field(size=size, class='form-control') }}
   </div>
 {%- endmacro %}
 
 {% macro render_tenant(dh, tenant) %}
   <tr>
-    <td>
+    <td style='vertical-align:middle'>
       {{ tenant.name }}
     </td>
-    <td class='text-center'>
+    <td class='text-center' style='vertical-align:middle'>
       {{ '%.2f' % dh.ComputeTenantBalance(tenant) }} <i class='fa fa-eur'></i>
     </td>
-    <td class='text-center'>
+    <td class='text-center' style='vertical-align:middle'>
       <i class='fa fa-fw fa-{{ "check" if tenant.is_living else "close" }}'></i>
     </td>
-    <td class='text-center'>
+    <td class='text-center' style='vertical-align:middle'>
       <i class='fa fa-fw fa-{{ "check" if tenant.is_home else "close" }}'></i>
     </td>
-    <td class='text-center'>
+    <td class='text-center' style='vertical-align:middle'>
       <i class='fa fa-fw fa-{{ "check" if tenant.is_manager else "close" }}'></i>
+    </td>
+    <td class='text-center' style='vertical-align:middle'>
+      <a href='/house/tenants/edit/{{ tenant.id }}' role='button' class='btn btn-default'>
+        <i class='fa fa-sliders'></i>
+      </a>
+      <a href='/house/tenants/del/{{ tenant.id }}' role='button' class='btn btn-default delete-tenant'>
+        <i class='fa fa-trash'></i>
+      </a>
     </td>
   </tr>
 {% endmacro %}
+

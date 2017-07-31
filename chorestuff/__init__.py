@@ -92,6 +92,10 @@ def ChoresTable():
     tenants.append(new_tenant)
     chores_dict[new_tenant.id] = new_chore
 
+  dh.Commit()
+
+  return
+
   extra_chores = [dh.AddChore('Toilet back'), dh.AddChore('Toilet front'), dh.AddChore('Throw out paper (wed-fri)')]
 
   bundle = dh.AddAssignmentBundle(date(2017, 7, 3), chores = chores_dict, extra_chores = extra_chores)
@@ -102,7 +106,6 @@ def ChoresTable():
   with open(os.path.join(app.root_path,'data/tex/chores_y%dw%d.tex' % bundle2[-1].date.isocalendar()[:2]), 'w+') as f:
     f.write(tex.NewAssignmentsBundle(bundle2[-1]))
 
-  dh.Commit()
 
   return '<pre>%s</pre>' % (tex.NewAssignmentsBundle(bundle2[-1]))
 
@@ -117,6 +120,8 @@ def ChoresTable():
   dh.AddTransaction(type = TransactionType.expense, tenant = tenants[2], date = date.today() + timedelta(days=3), amount = 4.0)
 
   bill2 = dh.AddBill(date.today() + timedelta(days=15), recurring = 3.0)
+
+#ChoresTable()
 
 """
 parser.add_argument('--db-file', '-db', action='store', type=str, default='videos.db', help='Path to DB file. (default: videos.db)')
