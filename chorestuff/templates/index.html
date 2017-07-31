@@ -1,0 +1,93 @@
+{%  from 'macros.html' import render_form_input %}
+<!doctype html>
+<html lang='en'>
+<title>ChoreStuff{%- block title -%}{%- endblock -%}</title>
+  <meta charset='utf-8' name='viewport' content='width=device-width, initial-scale=1'>
+  <head>
+    <script type=text/javascript>
+      $SCRIPT_ROOT = {{ request.script_root|tojson|safe }};
+    </script>
+
+    <link rel='shortcut icon' href='{{ url_for('static', filename='favicon.ico') }}'>
+
+    <link rel='stylesheet' href='https://use.fontawesome.com/0f0e90c637.css'>
+
+    <!-- Latest compiled and minified CSS -->
+    <link rel='stylesheet' href='https://maxcdn.bootstrapcdn.com/bootstrap/3.3.7/css/bootstrap.min.css' integrity='sha384-BVYiiSIFeK1dGmJRAkycuHAHRg32OmUcww7on3RYdg4Va+PmSTsz/K68vbdEjh4u' crossorigin='anonymous'>
+
+    <!-- Optional theme -->
+    <link rel='stylesheet' href='https://maxcdn.bootstrapcdn.com/bootstrap/3.3.7/css/bootstrap-theme.min.css' integrity='sha384-rHyoN1iRsVXV4nD0JutlnGaslCJuC7uwjduW9SVrLvRYooPp2bWYgmgJQIXwl/Sp' crossorigin='anonymous'>
+
+    <script src='//ajax.googleapis.com/ajax/libs/jquery/3.2.1/jquery.min.js'></script>
+    <script src='https://maxcdn.bootstrapcdn.com/bootstrap/3.3.7/js/bootstrap.min.js' integrity='sha384-Tc5IQib027qvyjSMfHjOMaLkfuWVxZxUPnCJA7l2mCWNIpG9mGCD8wGNIcPD7Txa' crossorigin='anonymous'></script>
+
+    <script src='/static/index.js'></script>
+  </head>
+
+  <body>
+    <nav class='navbar navbar-default'>
+      <div class='container-fluid'>
+        <!-- Brand and toggle get grouped for better mobile display -->
+        <div class='navbar-header'>
+            <button type='button' class='navbar-toggle collapsed' data-toggle='collapse' data-target='.navbar-collapse' aria-expanded='false'>
+              <span class='sr-only'>Toggle navigation</span>
+              <span class='icon-bar'></span>
+              <span class='icon-bar'></span>
+              <span class='icon-bar'></span>
+            </button>
+          <a class='navbar-brand' href='/'>ChoreStuff</a>
+        </div>
+
+          <div class='collapse navbar-collapse'>
+            <ul class='nav navbar-nav'>
+              <li class='dropdown'>
+                <a href='#' class='dropdown-toggle' data-toggle='dropdown' role='button' aria-haspopup='true' aria-expanded='false'>
+                  <i class="fa fa-fw fa-home" aria-hidden="true"></i> House <i class='fa fa-caret-down'></i>
+                </a>
+                <ul class='dropdown-menu'>
+                  <li><a href='/house/tenants'><i class="fa fa-fw fa-address-book" aria-hidden="true"></i> Tenants</a></li>
+                  <li><a href='/house/chores'><i class="fa fa-fw fa-shopping-cart" aria-hidden="true"></i> Chores</a></li>
+                  <li><a href='/house/assignments'><i class="fa fa-fw fa-wrench" aria-hidden="true"></i> Assignments</a></li>
+                </ul>
+              </li>
+            </ul>
+
+            <ul class='nav navbar-nav'>
+              <li class='dropdown'>
+                <a href='#' class='dropdown-toggle' data-toggle='dropdown' role='button' aria-haspopup='true' aria-expanded='false'>
+                  <i class="fa fa-fw fa-bank" aria-hidden="true"></i> Billing <i class='fa fa-caret-down'></i>
+                </a>
+                <ul class='dropdown-menu'>
+                  <li><a href='/billing/transactions'><i class="fa fa-fw fa-credit-card-alt" aria-hidden="true"></i> Transactions</a></li>
+                  <li><a href='/billing/bills'><i class="fa fa-fw fa-btc" aria-hidden="true"></i> Bills</a></li>
+                </ul>
+              </li>
+            </ul>
+          </div><!-- /.navbar-collapse -->
+      </div><!-- /.container-fluid -->
+    </nav>
+    <div class='container' style='max-width:480px'>
+    {% with messages = get_flashed_messages(with_categories=true) %}
+      <!-- Categories: success (green), info (blue), warning (yellow), danger (red) -->
+      <div id='alerts'>
+        {% if messages %}
+          <script>
+            {% for category, message in messages %}
+              $('div#alerts').message('{{ category }}', '{{ message }}');
+            {% endfor %}
+          </script>
+        {% endif %}
+      </div>
+    {% endwith %}
+    </div>
+    {%- block body -%}
+      <div class='container-fluid'>
+        <div class='row'>
+          <div class='col-md-12 text-center'>
+            <h1>Welcome to ChoreStuff</h1>
+          </div>
+        </div>
+      </div>
+    {%- endblock -%}
+  </body>
+</html>

@@ -1,0 +1,29 @@
+{% extends 'house.html' %}
+{% from 'macros.html' import render_tenant %}
+
+{% block title %} - House/Tenants{% endblock %}
+
+{% block body %}
+  <div class='container-fluid' style='max-width:768px'>
+    <div class='row' style='min-height:100px'>
+      <div class='text-center col-md-12'>
+        <h1>Tenants</h1>
+      </div>
+    </div>
+  </div>
+  <div class='table-responsive center-block' style='max-width:768px'>
+    <table class='table table-stripped table-hover table-condensed'>
+      <tr>
+        <th>Name</th>
+        <th class='text-center'>Balance</th>
+        <th class='text-center'>Living</th>
+        <th class='text-center'>Home</th>
+        <th class='text-center'>Manager</th>
+      </tr>
+      {% for tenant in tenants %}
+        {{ render_tenant(dh, tenant) }}
+      {% endfor %}
+    </table>
+  </div>
+{% endblock %}
+

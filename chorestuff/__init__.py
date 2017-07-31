@@ -5,7 +5,7 @@ app = Flask(__name__)
 app.config.from_object(__name__)
 
 app.config.update(dict(
-  DATABASE = os.path.join(app.root_path, 'chorestuff/config/data.db'),
+  DATABASE = os.path.join(app.root_path, 'config/data.db'),
   DEBUG = True,
   SECRET_KEY = 'secret',
 ))
@@ -15,19 +15,19 @@ app.config.from_envvar('CHORESTUFF_SETTINGS', silent=True)
 from .common import *
 from .sql import *
 from .texport import *
+from .pages import *
 
 csrf = CSRFProtect()
 csrf.init_app(app)
 
 parser = argparse.ArgumentParser(description='Chores tracker and bill generator.')
 
-@app.route('/')
-def index():
+def ChoresTable():
   tex = TeXporter.Instance()
   dh = DataHandler.Instance()
-  dh.Bind('chorestuff/config/data.db')
+  dh.Bind()
   Base.metadata.drop_all(dh.engine)
-  dh.Create('chorestuff/config/data.db')
+  dh.Create()
 
   chores_dict = {}
   tenants = []
@@ -88,7 +88,7 @@ def index():
   for assignment in assignments:
     new_tenant = dh.AddTenant(assignment['tenant'], is_manager = assignment['is_manager'], is_home = assignment['is_home'])
     new_chore = dh.AddChore(assignment['chore'])
-    
+
     tenants.append(new_tenant)
     chores_dict[new_tenant.id] = new_chore
 
@@ -96,11 +96,13 @@ def index():
 
   bundle = dh.AddAssignmentBundle(date(2017, 7, 3), chores = chores_dict, extra_chores = extra_chores)
   bundle2 = dh.CycleBundle(bundle, repeat = 4)
-  
+
   dh.AddExtraChores(bundle2[-1], extra_chores)
 
-  with open('chorestuff/data/tex/chores_y%dw%d.tex' % bundle2[-1].date.isocalendar()[:2], 'w+') as f:
+  with open(os.path.join(app.root_path,'data/tex/chores_y%dw%d.tex' % bundle2[-1].date.isocalendar()[:2]), 'w+') as f:
     f.write(tex.NewAssignmentsBundle(bundle2[-1]))
+
+  dh.Commit()
 
   return '<pre>%s</pre>' % (tex.NewAssignmentsBundle(bundle2[-1]))
 
@@ -115,7 +117,6 @@ def index():
   dh.AddTransaction(type = TransactionType.expense, tenant = tenants[2], date = date.today() + timedelta(days=3), amount = 4.0)
 
   bill2 = dh.AddBill(date.today() + timedelta(days=15), recurring = 3.0)
-
 
 """
 parser.add_argument('--db-file', '-db', action='store', type=str, default='videos.db', help='Path to DB file. (default: videos.db)')

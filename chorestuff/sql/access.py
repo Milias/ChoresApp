@@ -11,15 +11,15 @@ class DataHandler:
     Database-related functions.
   """
 
-  def Bind(self, filename):
-    self.engine = create_engine('sqlite:///%s' % filename)
+  def Bind(self):
+    self.engine = create_engine('sqlite:///%s' % app.config['DATABASE'])
     Base.metadata.bind = self.engine
 
     self.DBSession = sessionmaker(bind=self.engine)
     self.session = self.DBSession()
 
-  def Create(self, filename):
-    self.engine = create_engine('sqlite:///%s' % filename)
+  def Create(self):
+    self.engine = create_engine('sqlite:///%s' % app.config['DATABASE'])
     Base.metadata.create_all(self.engine)
     Base.metadata.bind = self.engine
 
@@ -314,7 +314,7 @@ class DataHandler:
     balance = 0.0
 
     # Get last bill's total.
-    last_bill = self.session.query(BillEntry).filter(BillEntry.tenant.id == tenant.id).order_by(BillEntry.bill.end_date.desc()).first()
+    last_bill = self.session.query(BillEntry).filter(BillEntry.tenant == tenant).order_by(BillEntry.date.desc()).first()
 
     if last_bill:
       balance += last_bill.total
@@ -328,7 +328,7 @@ class DataHandler:
     # If there is no previous bill, considering everything since the beginning of time.
     payments = self.session.query(Transaction).filter(and_(Transaction.date.between(last_bill.end_date if last_bill else date(year=1970, month=1, day=1), date.today()), Transaction.type == TransactionType.payment)).all()
 
-    balance -= sum([payment.amount for payments in payment])
+    balance -= sum([payment.amount for payment in payments])
 
     return balance
 
@@ -364,3 +364,4 @@ class DataHandler:
     bank_account = self.session.query(BankAccount).filter(BankAccount.id == id).first()
 
     if bank_account: self.session.delete(bank_account)
+

@@ -1,0 +1,29 @@
+{% macro render_form_input(Field, Icon = '',  Placeholder = '', ExtraClasses = '', Size = 20) -%}
+  <div class='input-group margin-bottom-sm'>
+    <span class="input-group-addon">
+      <i class="fa {{ Icon }} fa-fw"></i>
+    </span>
+    <span class='sr-only'>{{ Field.label }}</span>
+    {{ Field(size=Size, class='form-control', placeholder=Placeholder) }}
+  </div>
+{%- endmacro %}
+
+{% macro render_tenant(dh, tenant) %}
+  <tr>
+    <td>
+      {{ tenant.name }}
+    </td>
+    <td class='text-center'>
+      {{ '%.2f' % dh.ComputeTenantBalance(tenant) }} <i class='fa fa-eur'></i>
+    </td>
+    <td class='text-center'>
+      <i class='fa fa-fw fa-{{ "check" if tenant.is_living else "close" }}'></i>
+    </td>
+    <td class='text-center'>
+      <i class='fa fa-fw fa-{{ "check" if tenant.is_home else "close" }}'></i>
+    </td>
+    <td class='text-center'>
+      <i class='fa fa-fw fa-{{ "check" if tenant.is_manager else "close" }}'></i>
+    </td>
+  </tr>
+{% endmacro %}

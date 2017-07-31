@@ -22,6 +22,8 @@ from flask_wtf.csrf import CSRFProtect
 from wtforms import StringField, PasswordField, HiddenField, TextAreaField, IntegerField, SelectField
 from wtforms.validators import InputRequired, Email, Optional, Length, EqualTo
 
+from .. import app
+
 Base = declarative_base()
 
 def tex_escape(text):
@@ -109,3 +111,4 @@ class RedirectForm(FlaskForm):
       return redirect(self.next.data)
     target = get_redirect_target()
     return redirect(target or url_for(endpoint, **values))
+
