@@ -32,3 +32,8 @@ class TeXporter:
     template = self.Env.get_template('chorestuff/tex/expenses-table.tex')
     return template.render(bill = bill, tex_escape = tex_escape)
 
+def get_texporter():
+  if not hasattr(g, 'tex'):
+    g.tex = TeXporter.Instance()
+  return g.tex
+

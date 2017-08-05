@@ -1,0 +1,47 @@
+{% extends 'house.html' %}
+{% from 'macros.html' import render_form_assignment %}
+
+{% block house_body %}
+  <form class='form-horizontal' method="POST" action="/house/bundles/edit">
+    {{ form.csrf_token }}
+
+    <div class='container' style='max-width:768px'>
+      {{ form.id() }}
+      <div class='row'>
+        <div class='col-sm-4 col-sm-offset-4'>
+          <div class='input-group'>
+              <i class="input-group-addon">
+                <i class='fa fa-calendar'></i>
+              </i>
+              <i class='sr-only'>{{ form.date.label }}</i>
+              {{ form.date(class='form-control') }}
+            </div>
+        </div>
+      </div>
+      <div class='row'>
+        <div class='col-sm-12'>
+          <div class='table-responsive center-block'>
+            <table class='table table-condensed table-tenants'>
+              <tr>
+                <th class='text-center'>Home</th>
+                <th class='text-center'>Name</th>
+                <th class='text-center'>Chore</th>
+                <th class='text-center'>Completed</th>
+                <th class='text-center'>Date</th>
+                <th></th>
+              </tr>
+              {% for assignment in form.assignments.entries %}
+                {{ render_form_assignment(assignment) }}
+              {% endfor %}
+            </table>
+          </div>
+        </div>
+      </div>
+      <div class='text-center'>
+        <button type="submit" class="btn btn-default">Save</button>
+        <a href='/house/bundles{{ ('/%d' % form.id.data) if form.id.data else '' }}' role='button' class="btn btn-default">Cancel</a>
+      </div>
+    </div>
+  </form>
+{% endblock %}
+

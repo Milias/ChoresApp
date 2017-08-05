@@ -65,3 +65,62 @@
   </tr>
 {% endmacro %}
 
+{% macro render_bundle_list(dh, bundle) %}
+  <tr>
+    <td style='vertical-align:middle'>
+      {{ 'y%dw%d' % bundle.date.isocalendar()[:2] }}
+    </td>
+    <td class='text-center' style='vertical-align:middle'>
+      <a href='/house/bundles/{{ bundle.id }}' role='button' class='btn btn-default'>
+        <i class='fa fa-eye'></i>
+      </a>
+      <a href='/house/bundles/edit/{{ bundle.id }}' role='button' class='btn btn-default'>
+        <i class='fa fa-sliders'></i>
+      </a>
+      <a href='/house/bundles/del/{{ bundle.id }}' role='button' class='btn btn-default delete-bundle'>
+        <i class='fa fa-trash'></i>
+      </a>
+    </td>
+  </tr>
+{% endmacro %}
+
+{% macro render_assignment_view(dh, assignment) %}
+  <tr>
+    <td class='text-center' style='vertical-align:middle'>
+      <i class='fa fa-fw {{ (("fa-check" if assignment.is_tenant_home else "fa-close")) if assignment.tenant else '' }}'></i>
+    </td>
+    <td style='vertical-align:middle'>
+      {{ assignment.tenant.name if assignment.tenant else '(anyone)' }}
+    </td>
+    <td style='vertical-align:middle'>
+      {{ '(%4.2f €) %s' % (assignment.chore.value, assignment.chore.name) if assignment.chore }}
+    </td>
+    <td style='vertical-align:middle'>
+    </td>
+    <td style='vertical-align:middle'>
+    </td>
+  </tr>
+{% endmacro %}
+
+{% macro render_form_assignment(assignment) %}
+  <tr>
+    <td class='text-center' style='vertical-align:middle'>
+      {{ assignment.is_tenant_home(class='form-control') }}
+    </td>
+    <td class='text-center' style='vertical-align:middle'>
+      {{ assignment.tenant(class='form-control') }}
+    </td>
+    <td class='text-center' style='vertical-align:middle'>
+      {{ assignment.chore(class='form-control') }}
+    </td>
+    <td class='text-center' style='vertical-align:middle'>
+    </td>
+    <td class='text-center' style='vertical-align:middle'>
+    </td>
+    <td class='text-center' style='vertical-align:middle'>
+      <a href='/house/assignments/del/{{ assignment.id }}/{{ assignment.bundle_id }}' role='button' class='btn btn-default'>
+        <i class='fa fa-trash'></i>
+      </a>
+    </td>
+  </tr>
+{% endmacro %}

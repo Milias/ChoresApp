@@ -1,0 +1,51 @@
+{% extends 'house.html' %}
+{% from 'macros.html' import render_bundle_list, render_assignment_view %}
+
+{% block title %} - House/Assignments{% endblock %}
+
+{% block house_body %}
+  <div class='container'>
+    <div class='row'>
+      <div class='col-sm-4'>
+        <div class='table-responsive center-block'>
+          <table class='table table-condensed table-tenants'>
+            <tr>
+              <th>Date</th>
+              <th class='text-center'></th>
+            </tr>
+            <tr>
+              <td class='text-center' colspan="2">
+                <a href='/house/bundles/edit' role='button' class='btn btn-default'>
+                  <i class='fa fa-2x fa-plus'></i>
+                </a>
+              </td>
+            </tr>
+            {% for bundle in bundles %}
+              {{ render_bundle_list(dh, bundle) }}
+            {% endfor %}
+          </table>
+        </div>
+      </div>
+      <div class='col-sm-8'>
+        {% if chosen_bundle %}
+          <div class='table-responsive center-block'>
+            <table class='table table-condensed table-tenants'>
+              <tr>
+                <th class='text-center'><i class='fa fa-home'></i></th>
+                <th class=''><i class='fa fa-user'></i></th>
+                <th class=''><i class='fa fa-shopping-cart'></i></th>
+                <th class='text-center'>Completed</th>
+                <th class='text-center'>Date</th>
+              </tr>
+              {% for assignment in chosen_bundle.assignments %}
+                {{ render_assignment_view(dh, assignment) }}
+              {% endfor %}
+            </table>
+          </div>
+          <pre>{{ tex_str }}</pre>
+        {% endif %}
+      </div>
+    </div>
+  </div>
+{% endblock %}
+

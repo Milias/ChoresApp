@@ -61,7 +61,7 @@ class DataHandler:
     chore = self.session.query(Chore).filter(Chore.id == id).first()
 
     if chore == None:
-      print('Error getting chore: id not found.')
+      print('Warning getting chore: id not found.')
 
     return chore
 
@@ -96,7 +96,7 @@ class DataHandler:
     tenant = self.session.query(Tenant).filter(Tenant.id == id).first()
 
     if tenant == None:
-      print('Error getting tenant: id not found.')
+      print('Warning getting tenant: id not found.')
 
     return tenant
 
@@ -109,11 +109,6 @@ class DataHandler:
   def AddAssignmentBundle(self, date, init = True, chores = {}, extra_chores = []):
     # Chores is a dictionary specifying chores: chores[tenant.id] = chore
     bundle_date = self.GetBundleDate(date)
-
-    bundle = self.session.query(AssignmentBundle).filter(AssignmentBundle.date == bundle_date).first()
-
-    if bundle: return bundle
-
     new_bundle = AssignmentBundle(added = datetime.now(), date = bundle_date)
 
     if init:
@@ -125,7 +120,13 @@ class DataHandler:
 
   def InitAssignmentBundle(self, new_bundle, chores = {}, extra_chores = []):
     for tenant in self.GetLivingTenants():
-      new_assignment = Assignment(added = datetime.now(), tenant = tenant, bundle = new_bundle, is_tenant_home = tenant.is_home, chore = chores[tenant.id] if tenant.id in chores else None)
+      new_assignment = Assignment(
+        added = datetime.now(),
+        tenant = tenant,
+        bundle = new_bundle,
+        is_tenant_home = tenant.is_home,
+        chore = chores[tenant.id] if tenant.id in chores else None
+      )
       self.session.add(new_assignment)
 
     for chore in extra_chores:
@@ -134,7 +135,7 @@ class DataHandler:
 
   def GetAllAssignmentBundles(self, sorted = False):
     if sorted:
-      return self.session.query(AssignmentBundle).order_by(AssignmentBundle.week.asc()).all()
+      return self.session.query(AssignmentBundle).order_by(AssignmentBundle.date.desc()).all()
 
     return self.session.query(AssignmentBundle).all()
 
@@ -142,7 +143,7 @@ class DataHandler:
     bundle = self.session.query(AssignmentBundle).filter(AssignmentBundle.id == id).first()
 
     if bundle == None:
-      print('Error getting assignment bundle: id not found.')
+      print('Warning getting assignment bundle: id not found.')
 
     return bundle
 
@@ -151,9 +152,19 @@ class DataHandler:
     bundle = self.session.query(AssignmentBundle).filter(bundle_date).first()
 
     if bundle == None:
-      print('Error getting assignment bundle: date not found.')
+      print('Warning getting assignment bundle: date not found.')
 
     return bundle
+
+  def RemoveAssignmentBundle(self, id):
+    bundle = self.session.query(AssignmentBundle).filter(AssignmentBundle.id == id).first()
+
+    if bundle: self.session.delete(bundle)
+
+  def RemoveAssignment(self, id):
+    assignment = self.session.query(Assignment).filter(Assignment.id == id).first()
+
+    if assignment: self.session.delete(assignment)
 
   def SetAssignmentsChores(self, bundle, chores):
     """
@@ -162,12 +173,15 @@ class DataHandler:
     """
 
     for assignment in bundle.assignments:
-      assignment.chore = chores[assignment.tenant.id] if assignment.tenant.id in chores else None
+      if assignment.tenant:
+        assignment.chore = chores[assignment.tenant.id] if assignment.tenant.id in chores else assignment.chore
 
   def AddExtraChores(self, bundle, extra_chores):
+    existing_chores = [assignment.chore.id for assignment in bundle.assignments if assignment.chore]
     for chore in extra_chores:
-      new_assignment = Assignment(added = datetime.now(), tenant = None, bundle = bundle, chore = chore)
-      self.session.add(new_assignment)
+      if not chore.id in existing_chores:
+        new_assignment = Assignment(added = datetime.now(), tenant = None, bundle = bundle, chore = chore)
+        self.session.add(new_assignment)
 
   def CompleteAssignment(self, assignment, **kwargs):
     new_completion = CompletedAssignment(added = datetime.now(), assignment = assignment, **kwargs)
@@ -352,7 +366,7 @@ class DataHandler:
     bank_account = self.session.query(BankAccount).filter(BankAccount.id == id).first()
 
     if bank_account == None:
-      print('Error getting bank account: id not found.')
+      print('Warning getting bank account: id not found.')
 
     return bank_account
 
