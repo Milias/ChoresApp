@@ -39,7 +39,7 @@
       </div>
       <div class='text-center'>
         <button type="submit" class="btn btn-default">Save</button>
-        <a href='/house/bundles{{ ('/%d' % form.id.data) if form.id.data else '' }}' role='button' class="btn btn-default">Cancel</a>
+        <a href='/house/bundles{{ ('/%s' % form.id.data) if form.id.data else '' }}' role='button' class="btn btn-default">Cancel</a>
       </div>
     </div>
   </form>

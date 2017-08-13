@@ -74,6 +74,9 @@
       <a href='/house/bundles/{{ bundle.id }}' role='button' class='btn btn-default'>
         <i class='fa fa-eye'></i>
       </a>
+      <a href='/house/bundles/copy/{{ bundle.id }}' role='button' class='btn btn-default'>
+        <i class='fa fa-clone'></i>
+      </a>
       <a href='/house/bundles/edit/{{ bundle.id }}' role='button' class='btn btn-default'>
         <i class='fa fa-sliders'></i>
       </a>
@@ -93,7 +96,7 @@
       {{ assignment.tenant.name if assignment.tenant else '(anyone)' }}
     </td>
     <td style='vertical-align:middle'>
-      {{ '(%4.2f €) %s' % (assignment.chore.value, assignment.chore.name) if assignment.chore }}
+      {{ '%s' % (assignment.chore.name) if assignment.chore }}
     </td>
     <td style='vertical-align:middle'>
     </td>

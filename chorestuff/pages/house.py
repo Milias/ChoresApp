@@ -157,6 +157,62 @@ def HouseBundles(bundle_id):
 
   return render_template('house_bundles.html', dh = dh, bundles = bundles, chosen_bundle = chosen_bundle, tex_str = tex_str)
 
+@app.route('/house/bundles/copy/<int:bundle_id>', methods = ('GET', 'POST'))
+def HouseBundlesCopy(bundle_id):
+  dh = get_session()
+  form = FormEditAssignmentBundle()
+
+  living_tenants = dh.GetLivingTenants(sorted = True)
+  tenants_choices = [(0, '(anyone)')] + [(tenant.id, tenant.name) for tenant in living_tenants]
+
+  chores = dh.GetAllChores()
+  chores_choices = [(0, '')] + [(chore.id, '%s' % (chore.name)) for chore in chores]
+
+  bundle = None
+  if bundle_id:
+    bundle = dh.GetAssignmentBundle(bundle_id)
+
+  if bundle == None:
+    return redirect('/house/bundles/edit')
+
+  else:
+    bundle = dh.CycleBundle(bundle, 1)[-1]
+    bundle.assignments.sort(key = lambda a: a.tenant.name if a.tenant else 'zzzzzz')
+    form.id.data = bundle.id
+
+    for assignment in bundle.assignments:
+      entry = form.assignments.append_entry()
+      entry.tenant.choices = tenants_choices
+      entry.chore.choices = chores_choices
+
+      entry.tenant.data = assignment.tenant.id if assignment.tenant else 0
+      entry.is_tenant_home.data = assignment.is_tenant_home
+      entry.chore.data = assignment.chore.id if assignment.chore else 0
+      entry.id = assignment.id
+      entry.bundle_id = bundle.id
+
+    for i in range(3):
+      entry = form.assignments.append_entry()
+      entry.tenant.data = 0
+      entry.is_tenant_home.data = -1
+      entry.chore.data = 0
+
+      entry.id = 0
+      entry.bundle_id = 0
+
+      entry.tenant.choices = tenants_choices
+      entry.chore.choices = chores_choices
+
+  for assignment in bundle.assignments:
+    entry.tenant.choices = tenants_choices
+    entry.chore.choices = chores_choices
+
+  for field in form:
+    for error in field.errors:
+      flash('%s: %s' % (field.name, error), 'warning')
+
+  return render_template('house_bundles_edit.html', dh = dh, bundle = bundle, form = form)
+
 @app.route('/house/bundles/edit', defaults = {'bundle_id': 0}, methods = ('GET', 'POST'))
 @app.route('/house/bundles/edit/<int:bundle_id>', methods = ('GET', 'POST'))
 def HouseBundlesEdit(bundle_id):
@@ -167,13 +223,14 @@ def HouseBundlesEdit(bundle_id):
   tenants_choices = [(0, '(anyone)')] + [(tenant.id, tenant.name) for tenant in living_tenants]
 
   chores = dh.GetAllChores()
-  chores_choices = [(0, '')] + [(chore.id, '(%4.2f €) %s' % (chore.value, chore.name)) for chore in chores]
+  chores_choices = [(0, '')] + [(chore.id, '%s' % (chore.name)) for chore in chores]
 
   bundle = None
   if bundle_id:
     bundle = dh.GetAssignmentBundle(bundle_id)
 
   if bundle:
+    form.date.data = bundle.date
     # Sort assignments by tenants' names and put (anyone) at the end.
     bundle.assignments.sort(key = lambda a: a.tenant.name if a.tenant else 'zzzzzz')
     if len(form.assignments.entries) == 0:
@@ -185,18 +242,31 @@ def HouseBundlesEdit(bundle_id):
         entry.chore.choices = chores_choices
 
         entry.tenant.data = assignment.tenant.id if assignment.tenant else 0
-        entry.is_tenant_home.data = assignment.is_tenant_home
+        entry.is_tenant_home.data = assignment.is_tenant_home if assignment.tenant else -1
         entry.chore.data = assignment.chore.id if assignment.chore else 0
         entry.id = assignment.id
         entry.bundle_id = bundle.id
 
-    for assignment in bundle.assignments:
+      for i in range(3):
+        entry = form.assignments.append_entry()
+        entry.tenant.data = 0
+        entry.is_tenant_home.data = -1
+        entry.chore.data = 0
+
+        entry.id = 0
+        entry.bundle_id = 0
+
+        entry.tenant.choices = tenants_choices
+        entry.chore.choices = chores_choices
+
+    for entry in form.assignments.entries:
       entry.tenant.choices = tenants_choices
       entry.chore.choices = chores_choices
 
   else:
     # Creates assignments only if there are none.
     if len(form.assignments.entries) == 0:
+      form.date.data = dh.GetBundleDate(date.today())
       form.id.data = 0
 
       for tenant in living_tenants:
@@ -204,7 +274,7 @@ def HouseBundlesEdit(bundle_id):
       for i in range(3):
         entry = form.assignments.append_entry()
 
-      for entry, tenant in zip(form.assignments, living_tenants + 3*[None]):
+      for entry, tenant in zip(form.assignments.entries, living_tenants + 3*[None]):
         entry.tenant.data = tenant.id if tenant else 0
         entry.is_tenant_home.data = tenant.is_home if tenant else -1
         entry.chore.data = 0
@@ -212,18 +282,20 @@ def HouseBundlesEdit(bundle_id):
         entry.id = 0
         entry.bundle_id = 0
 
-    for entry, tenant in zip(form.assignments, living_tenants + 3*[None]):
+    for entry in form.assignments.entries:
       entry.tenant.choices = tenants_choices
       entry.chore.choices = chores_choices
 
   if form.validate_on_submit():
     chores_dict = {}
+    home_dict = {}
     extra_chores = []
 
     for assignment in form.assignments.entries:
       if assignment.tenant.data:
         # Assignment for a tenant.
         chores_dict[assignment.tenant.data] = dh.GetChore(assignment.chore.data)
+        home_dict[assignment.tenant.data] = assignment.is_tenant_home.data > 0
 
       elif assignment.chore.data:
         # Assignment for anyone.
@@ -241,6 +313,9 @@ def HouseBundlesEdit(bundle_id):
 
       if extra_chores:
         dh.AddExtraChores(bundle, extra_chores)
+
+      if home_dict:
+        dh.SetTenantIsHome(bundle, home_dict)
 
       flash('Assignment modified.', 'success')
 

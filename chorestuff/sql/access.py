@@ -176,6 +176,12 @@ class DataHandler:
       if assignment.tenant:
         assignment.chore = chores[assignment.tenant.id] if assignment.tenant.id in chores else assignment.chore
 
+  def SetTenantIsHome(self, bundle, home_dict):
+    for assignment in bundle.assignments:
+      if assignment.tenant:
+        if assignment.tenant.id in home_dict:
+          assignment.is_tenant_home = home_dict[assignment.tenant.id]
+
   def AddExtraChores(self, bundle, extra_chores):
     existing_chores = [assignment.chore.id for assignment in bundle.assignments if assignment.chore]
     for chore in extra_chores:
