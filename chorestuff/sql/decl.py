@@ -94,9 +94,6 @@ class CompletedAssignment(Base):
   assignment_id = Column(Integer, ForeignKey('assignments.id'))
   assignment = relationship('Assignment', back_populates = 'completions')
 
-  def __repr__(self):
-    return '%10s: \'%s\' completed by %s' % (self.date, self.assignment.chore.name, self.tenant.name)
-
 """
   Billing information
 """

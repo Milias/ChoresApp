@@ -22,7 +22,7 @@ from flask import g, request, jsonify, redirect, render_template, flash, send_fr
 from flask_wtf import FlaskForm
 from flask_wtf.csrf import CSRFProtect
 
-from wtforms import StringField, PasswordField, HiddenField, TextAreaField, IntegerField, SelectField, BooleanField, DecimalField, FieldList, FormField
+from wtforms import StringField, PasswordField, HiddenField, TextAreaField, IntegerField, SelectField, SelectMultipleField, BooleanField, DecimalField, FieldList, FormField
 from wtforms.fields.html5 import EmailField, DateField
 from wtforms.validators import InputRequired, Email, Optional, Length, EqualTo
 

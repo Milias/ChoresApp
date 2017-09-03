@@ -6,7 +6,7 @@
     {{ form.csrf_token }}
 
     <div class='container' style='max-width:768px'>
-      {{ form.id() }}
+      {{ form.tenant_id() }}
       {{ render_form_input_basic(form.name, 'fa-user', 'Name') }}
       {{ render_form_input_basic(form.email, 'fa-envelope', 'Email address') }}
       {{ render_form_input_checkbox(form.is_living, 'fa-home') }}

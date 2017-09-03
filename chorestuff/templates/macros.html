@@ -99,6 +99,9 @@
       {{ '%s' % (assignment.chore.name) if assignment.chore }}
     </td>
     <td style='vertical-align:middle'>
+      {%- for completion in assignment.completions -%}
+        {{ '%s, ' % completion.tenant.name }}
+      {%- endfor -%}
     </td>
     <td style='vertical-align:middle'>
     </td>
@@ -107,6 +110,8 @@
 
 {% macro render_form_assignment(assignment) %}
   <tr>
+    {{ assignment.assignment_id() }}
+    {{ assignment.bundle_id() }}
     <td class='text-center' style='vertical-align:middle'>
       {{ assignment.is_tenant_home(class='form-control') }}
     </td>
@@ -117,11 +122,12 @@
       {{ assignment.chore(class='form-control') }}
     </td>
     <td class='text-center' style='vertical-align:middle'>
+      {{ assignment.completed(size=2,class='form-control') if assignment.assignment_id.data != 0 else '' }}
     </td>
     <td class='text-center' style='vertical-align:middle'>
     </td>
     <td class='text-center' style='vertical-align:middle'>
-      <a href='/house/assignments/del/{{ assignment.id }}/{{ assignment.bundle_id }}' role='button' class='btn btn-default'>
+      <a href='/house/assignments/del/{{ assignment.assignment_id.data }}/{{ assignment.bundle_id.data }}' role='button' class='btn btn-default'>
         <i class='fa fa-trash'></i>
       </a>
     </td>

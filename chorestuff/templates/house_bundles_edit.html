@@ -5,8 +5,8 @@
   <form class='form-horizontal' method="POST" action="/house/bundles/edit">
     {{ form.csrf_token }}
 
-    <div class='container' style='max-width:768px'>
-      {{ form.id() }}
+    <div class='container' style='max-width:1024px'>
+      {{ form.bundle_id() }}
       <div class='row'>
         <div class='col-sm-4 col-sm-offset-4'>
           <div class='input-group'>
@@ -39,7 +39,7 @@
       </div>
       <div class='text-center'>
         <button type="submit" class="btn btn-default">Save</button>
-        <a href='/house/bundles{{ ('/%s' % form.id.data) if form.id.data else '' }}' role='button' class="btn btn-default">Cancel</a>
+        <a href='/house/bundles{{ ('/%s' % form.bundle_id.data) if form.bundle_id.data else '' }}' role='button' class="btn btn-default">Cancel</a>
       </div>
     </div>
   </form>

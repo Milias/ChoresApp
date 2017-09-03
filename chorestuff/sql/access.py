@@ -159,12 +159,19 @@ class DataHandler:
   def RemoveAssignmentBundle(self, id):
     bundle = self.session.query(AssignmentBundle).filter(AssignmentBundle.id == id).first()
 
-    if bundle: self.session.delete(bundle)
+    if bundle:
+      for assignment in bundle.assignments:
+        self.RemoveAssignment(assignment.id)
+
+      self.session.delete(bundle)
 
   def RemoveAssignment(self, id):
     assignment = self.session.query(Assignment).filter(Assignment.id == id).first()
 
-    if assignment: self.session.delete(assignment)
+    if assignment:
+      for comp in assignment.completions:
+        self.session.delete(comp)
+      self.session.delete(assignment)
 
   def SetAssignmentsChores(self, bundle, chores):
     """
@@ -189,10 +196,36 @@ class DataHandler:
         new_assignment = Assignment(added = datetime.now(), tenant = None, bundle = bundle, chore = chore)
         self.session.add(new_assignment)
 
-  def CompleteAssignment(self, assignment, **kwargs):
-    new_completion = CompletedAssignment(added = datetime.now(), assignment = assignment, **kwargs)
-    self.session.add(new_completion)
-    return new_completion
+  def GetAssignment(self, id):
+    assignment = self.session.query(Assignment).filter(Assignment.id == id).first()
+
+    if assignment == None:
+      print('Warning getting assignment: id not found.')
+
+    return assignment
+
+  def CompleteAssignment(self, assignment, tenant_ids, **kwargs):
+    marked_for_removal = []
+
+    for comp in assignment.completions:
+      if comp.tenant:
+        if comp.tenant.id in tenant_ids:
+          tenant_ids.remove(comp.tenant.id)
+          continue
+
+      marked_for_removal.append(comp)
+
+    for comp in marked_for_removal:
+      self.session.delete(comp)
+
+    if tenant_ids == [0]:
+      return
+    elif [0] in tenant_ids:
+      tenant_ids.remove(0)
+
+    for tenant_id in tenant_ids:
+      new_completion = CompletedAssignment(added = datetime.now(), assignment = assignment, tenant = self.GetTenant(tenant_id), **kwargs)
+      self.session.add(new_completion)
 
   def CycleBundle(self, bundle_list, repeat = 0):
     if repeat:

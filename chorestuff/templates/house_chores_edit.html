@@ -6,7 +6,7 @@
     {{ form.csrf_token }}
 
     <div class='container' style='max-width:768px'>
-      {{ form.id() }}
+      {{ form.chore_id() }}
       {{ render_form_input_basic(form.name, 'fa-info-circle', 'Name') }}
       {{ render_form_input_basic(form.value, 'fa-eur', 'Value') }}
       <div class='text-center'>

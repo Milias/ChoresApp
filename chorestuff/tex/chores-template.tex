@@ -5,6 +5,7 @@
 \usepackage[T1]{fontenc}
 \usepackage[cm]{fullpage}
 \usepackage{tabularx}
+\usepackage{amssymb}
 
 \begin{document}
 \pagenumbering{gobble}
@@ -20,7 +21,7 @@
     \hline
     \BLOCK{ for assignment in bundle.assignments }
       \BLOCK{- if assignment.tenant -}
-        \VAR{'  '} \VAR{ '%3s' % ('Yes' if assignment.is_tenant_home else 'No') } & \VAR{ '%15s' % tex_escape(assignment.tenant.name) } & \VAR{ '%20s' % (tex_escape(assignment.chore.name) if assignment.chore else '(None)') } & \phantom{---------------} & \\[0.25cm] \hline \VAR{ '\n    ' }
+        \VAR{'  '} \VAR{ '%3s' % ('\checkmark' if assignment.is_tenant_home else '') } & \VAR{ '%15s' % tex_escape(assignment.tenant.name) } & \VAR{ '%20s' % (tex_escape(assignment.chore.name) if assignment.chore else '(None)') } & \phantom{---------------} & \\[0.25cm] \hline \VAR{ '\n    ' }
       \BLOCK{- endif -}
     \BLOCK{ endfor }
     \BLOCK{- for assignment in bundle.assignments -}

@@ -3,7 +3,7 @@ from ..sql import *
 from ..texport import *
 
 class FormEditTenant(RedirectForm):
-  id = HiddenField('Id:')
+  tenant_id = HiddenField('Id:')
   name = StringField('Name: ', validators=[InputRequired(), Length(max=256)])
   email = EmailField('Email address: ', validators=[InputRequired(), Email(), Length(max=256)])
 
@@ -12,21 +12,23 @@ class FormEditTenant(RedirectForm):
   is_manager = BooleanField('Manager: ', default=False)
 
 class FormEditChore(RedirectForm):
-  id = HiddenField('Id:')
+  chore_id = HiddenField('Id:')
   name = StringField('Name: ', validators=[InputRequired(), Length(max=256)])
   value = DecimalField('Value: ', validators=[InputRequired()])
   description = TextAreaField('Description:', validators=[Optional()])
 
 class FormEditAssignment(RedirectForm):
-  id = HiddenField('Id:')
+  assignment_id = HiddenField('Id:')
   bundle_id = HiddenField('Bundle Id:')
 
   is_tenant_home = SelectField('Is home:', choices = [(-1, ''), (1, 'Yes'), (0, 'No')], coerce=int, validators=[InputRequired()])
   tenant = SelectField('Tenant:', choices = [], coerce=int, validators=[Optional()])
   chore = SelectField('Chore:', choices = [], coerce=int, validators=[Optional()])
+  completed = SelectMultipleField('Completed by:', choices = [], coerce=int, validators=[Optional()])
+  date = DateField('Completion date:', validators = [Optional()])
 
 class FormEditAssignmentBundle(RedirectForm):
-  id = HiddenField('Id:')
+  bundle_id = HiddenField('Id:')
   date = DateField('Assignment date:', default = lambda: date.today() - timedelta(days=date.today().isocalendar()[2] - 1), validators = [InputRequired()])
 
   assignments = FieldList(FormField(FormEditAssignment))
@@ -51,8 +53,8 @@ def HouseTenantsEdit(tenant_id):
   if tenant_id:
     tenant = dh.GetTenant(tenant_id)
     if tenant:
-      for attr in ('id', 'name', 'email', 'is_living', 'is_home', 'is_manager'):
-        setattr(getattr(form, attr), 'data', getattr(tenant, attr))
+      for attr in (('tenant_id', 'id'), 'name', 'email', 'is_living', 'is_home', 'is_manager'):
+        setattr(getattr(form, attr[0] if type(attr)==type((1,)) else attr), 'data', getattr(tenant, attr[1] if type(attr)==type((1,)) else attr))
 
   if form.validate_on_submit():
     tenant = dh.GetTenant(form.id.data)
@@ -102,8 +104,8 @@ def HouseChoresEdit(chore_id):
   if chore_id:
     chore = dh.GetChore(chore_id)
     if chore:
-      for attr in ('id', 'name', 'value', 'description'):
-        setattr(getattr(form, attr), 'data', getattr(chore, attr))
+      for attr in (('chore_id', 'id'), 'name', 'value', 'description'):
+        setattr(getattr(form, attr[0] if type(attr)==type((1,)) else attr), 'data', getattr(chore, attr[1] if type(attr)==type((1,)) else attr))
 
   if form.validate_on_submit():
     chore = dh.GetChore(form.id.data)
@@ -160,58 +162,19 @@ def HouseBundles(bundle_id):
 @app.route('/house/bundles/copy/<int:bundle_id>', methods = ('GET', 'POST'))
 def HouseBundlesCopy(bundle_id):
   dh = get_session()
-  form = FormEditAssignmentBundle()
 
-  living_tenants = dh.GetLivingTenants(sorted = True)
-  tenants_choices = [(0, '(anyone)')] + [(tenant.id, tenant.name) for tenant in living_tenants]
-
-  chores = dh.GetAllChores()
-  chores_choices = [(0, '')] + [(chore.id, '%s' % (chore.name)) for chore in chores]
-
-  bundle = None
-  if bundle_id:
-    bundle = dh.GetAssignmentBundle(bundle_id)
+  bundle = dh.GetAssignmentBundle(bundle_id)
 
   if bundle == None:
     return redirect('/house/bundles/edit')
 
   else:
     bundle = dh.CycleBundle(bundle, 1)[-1]
-    bundle.assignments.sort(key = lambda a: a.tenant.name if a.tenant else 'zzzzzz')
-    form.id.data = bundle.id
+    dh.Commit()
 
-    for assignment in bundle.assignments:
-      entry = form.assignments.append_entry()
-      entry.tenant.choices = tenants_choices
-      entry.chore.choices = chores_choices
+    flash('Assignment copied and cycled', 'success')
 
-      entry.tenant.data = assignment.tenant.id if assignment.tenant else 0
-      entry.is_tenant_home.data = assignment.is_tenant_home
-      entry.chore.data = assignment.chore.id if assignment.chore else 0
-      entry.id = assignment.id
-      entry.bundle_id = bundle.id
-
-    for i in range(3):
-      entry = form.assignments.append_entry()
-      entry.tenant.data = 0
-      entry.is_tenant_home.data = -1
-      entry.chore.data = 0
-
-      entry.id = 0
-      entry.bundle_id = 0
-
-      entry.tenant.choices = tenants_choices
-      entry.chore.choices = chores_choices
-
-  for assignment in bundle.assignments:
-    entry.tenant.choices = tenants_choices
-    entry.chore.choices = chores_choices
-
-  for field in form:
-    for error in field.errors:
-      flash('%s: %s' % (field.name, error), 'warning')
-
-  return render_template('house_bundles_edit.html', dh = dh, bundle = bundle, form = form)
+  return redirect('/house/bundles/%d' % bundle.id)
 
 @app.route('/house/bundles/edit', defaults = {'bundle_id': 0}, methods = ('GET', 'POST'))
 @app.route('/house/bundles/edit/<int:bundle_id>', methods = ('GET', 'POST'))
@@ -221,6 +184,7 @@ def HouseBundlesEdit(bundle_id):
 
   living_tenants = dh.GetLivingTenants(sorted = True)
   tenants_choices = [(0, '(anyone)')] + [(tenant.id, tenant.name) for tenant in living_tenants]
+  tenants_comp_choices = [(0, '')] + [(tenant.id, tenant.name) for tenant in living_tenants]
 
   chores = dh.GetAllChores()
   chores_choices = [(0, '')] + [(chore.id, '%s' % (chore.name)) for chore in chores]
@@ -234,18 +198,21 @@ def HouseBundlesEdit(bundle_id):
     # Sort assignments by tenants' names and put (anyone) at the end.
     bundle.assignments.sort(key = lambda a: a.tenant.name if a.tenant else 'zzzzzz')
     if len(form.assignments.entries) == 0:
-      form.id.data = bundle.id
+      form.bundle_id.data = bundle.id
 
       for assignment in bundle.assignments:
         entry = form.assignments.append_entry()
         entry.tenant.choices = tenants_choices
         entry.chore.choices = chores_choices
+        entry.completed.choices = tenants_comp_choices[1:]
 
         entry.tenant.data = assignment.tenant.id if assignment.tenant else 0
         entry.is_tenant_home.data = assignment.is_tenant_home if assignment.tenant else -1
         entry.chore.data = assignment.chore.id if assignment.chore else 0
-        entry.id = assignment.id
-        entry.bundle_id = bundle.id
+        entry.completed.data = [ completion.tenant.id for completion in assignment.completions if completion.tenant ]
+        print(entry.completed.data)
+        entry.assignment_id.data = assignment.id
+        entry.bundle_id.data = bundle.id
 
       for i in range(3):
         entry = form.assignments.append_entry()
@@ -253,21 +220,23 @@ def HouseBundlesEdit(bundle_id):
         entry.is_tenant_home.data = -1
         entry.chore.data = 0
 
-        entry.id = 0
-        entry.bundle_id = 0
+        entry.assignment_id.data = 0
+        entry.bundle_id.data = 0
 
         entry.tenant.choices = tenants_choices
         entry.chore.choices = chores_choices
+        entry.completed.choices = tenants_comp_choices
 
     for entry in form.assignments.entries:
       entry.tenant.choices = tenants_choices
       entry.chore.choices = chores_choices
+      entry.completed.choices = tenants_comp_choices
 
   else:
     # Creates assignments only if there are none.
     if len(form.assignments.entries) == 0:
       form.date.data = dh.GetBundleDate(date.today())
-      form.id.data = 0
+      form.bundle_id.data = 0
 
       for tenant in living_tenants:
         entry = form.assignments.append_entry()
@@ -279,17 +248,19 @@ def HouseBundlesEdit(bundle_id):
         entry.is_tenant_home.data = tenant.is_home if tenant else -1
         entry.chore.data = 0
 
-        entry.id = 0
-        entry.bundle_id = 0
+        entry.assignment_id.data = 0
+        entry.bundle_id.data = 0
 
     for entry in form.assignments.entries:
       entry.tenant.choices = tenants_choices
       entry.chore.choices = chores_choices
+      entry.completed.choices = tenants_comp_choices
 
   if form.validate_on_submit():
     chores_dict = {}
     home_dict = {}
     extra_chores = []
+    completed_chores = {}
 
     for assignment in form.assignments.entries:
       if assignment.tenant.data:
@@ -301,7 +272,10 @@ def HouseBundlesEdit(bundle_id):
         # Assignment for anyone.
         extra_chores.append(dh.GetChore(assignment.chore.data))
 
-    bundle = dh.GetAssignmentBundle(form.id.data)
+      if assignment.completed.data:
+        completed_chores[assignment.assignment_id.data] = assignment.completed.data
+
+    bundle = dh.GetAssignmentBundle(form.bundle_id.data)
     if bundle == None:
       bundle = dh.AddAssignmentBundle(form.date.data, chores = chores_dict, extra_chores = extra_chores)
 
@@ -318,6 +292,11 @@ def HouseBundlesEdit(bundle_id):
         dh.SetTenantIsHome(bundle, home_dict)
 
       flash('Assignment modified.', 'success')
+
+    for assignment_id in completed_chores:
+      assignment = dh.GetAssignment(assignment_id)
+      if assignment:
+        dh.CompleteAssignment(assignment, completed_chores[assignment_id])
 
     dh.Commit()
     return redirect('/house/bundles/%d' % bundle.id)
