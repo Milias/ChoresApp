@@ -54,16 +54,16 @@ def HouseTenantsEdit(tenant_id):
     tenant = dh.GetTenant(tenant_id)
     if tenant:
       for attr in (('tenant_id', 'id'), 'name', 'email', 'is_living', 'is_home', 'is_manager'):
-        setattr(getattr(form, attr[0] if type(attr)==type((1,)) else attr), 'data', getattr(tenant, attr[1] if type(attr)==type((1,)) else attr))
+        setattr(getattr(form, attr[0] if isinstance(attr, tuple) else attr), 'data', getattr(tenant, attr[1] if isinstance(attr, tuple) else attr))
 
   if form.validate_on_submit():
-    tenant = dh.GetTenant(form.id.data)
+    tenant = dh.GetTenant(form.tenant_id.data)
     if tenant == None:
       tenant = dh.AddTenant(name = form.name.data, email = form.email.data, is_living = form.is_living.data, is_home = form.is_home.data, is_manager = form.is_manager.data)
       flash('Tenant added.', 'success')
     else:
-      for attr in ('name', 'email', 'is_living', 'is_home', 'is_manager'):
-        setattr(tenant, attr, getattr(form, attr).data)
+      for attr in (('tenant_id', 'id'), 'name', 'email', 'is_living', 'is_home', 'is_manager'):
+        setattr(tenant, attr[1] if isinstance(attr, tuple) else attr, getattr(form, attr[0] if isinstance(attr, tuple) else attr).data)
       flash('Tenant information modified.', 'success')
 
     dh.Commit()
@@ -108,13 +108,13 @@ def HouseChoresEdit(chore_id):
         setattr(getattr(form, attr[0] if type(attr)==type((1,)) else attr), 'data', getattr(chore, attr[1] if type(attr)==type((1,)) else attr))
 
   if form.validate_on_submit():
-    chore = dh.GetChore(form.id.data)
+    chore = dh.GetChore(form.chore_id.data)
     if chore == None:
       chore = dh.AddChore(form.name.data, value = form.value.data)
       flash('Chore added.', 'success')
     else:
-      for attr in ('name', 'value', 'description'):
-        setattr(chore, attr, getattr(form, attr).data)
+      for attr in (('chore_id', 'id'), 'name', 'value', 'description'):
+        setattr(chore, attr[1] if isinstance(attr, tuple) else attr, getattr(form, attr[0] if isinstance(attr, tuple) else attr).data)
       flash('Chore information modified.', 'success')
 
     dh.Commit()
@@ -157,7 +157,33 @@ def HouseBundles(bundle_id):
 
     tex_str = tex.NewAssignmentsBundle(chosen_bundle)
 
-  return render_template('house_bundles.html', dh = dh, bundles = bundles, chosen_bundle = chosen_bundle, tex_str = tex_str)
+  return render_template('house_bundles.html', dh = dh, bundles = bundles, chosen_bundle = chosen_bundle)
+
+@app.route('/house/bundles/tex/<int:bundle_id>', methods = ('GET', 'POST'))
+def HouseBundlesTex(bundle_id):
+  dh = get_session()
+  tex = get_texporter()
+  bundle = dh.GetAssignmentBundle(bundle_id)
+
+  if bundle == None:
+    return redirect('/house/bundles')
+
+  chosen_bundle = None
+  tex_str = None
+  if bundle_id:
+    chosen_bundle = dh.GetAssignmentBundle(bundle_id)
+
+  if chosen_bundle:
+    # Sort assignments by tenants' names and put (anyone) at the end.
+    chosen_bundle.assignments.sort(key = lambda a: a.tenant.name if a.tenant else 'zzzzzz')
+
+    tex_str = tex.NewAssignmentsBundle(chosen_bundle)
+
+  return Response(
+    tex_str,
+    mimetype='application/x-latex',
+    headers={'Content-disposition': 'attachment; filename=y%dw%d.tex' % bundle.date.isocalendar()[:2]}
+  )
 
 @app.route('/house/bundles/copy/<int:bundle_id>', methods = ('GET', 'POST'))
 def HouseBundlesCopy(bundle_id):
@@ -210,7 +236,6 @@ def HouseBundlesEdit(bundle_id):
         entry.is_tenant_home.data = assignment.is_tenant_home if assignment.tenant else -1
         entry.chore.data = assignment.chore.id if assignment.chore else 0
         entry.completed.data = [ completion.tenant.id for completion in assignment.completions if completion.tenant ]
-        print(entry.completed.data)
         entry.assignment_id.data = assignment.id
         entry.bundle_id.data = bundle.id
 

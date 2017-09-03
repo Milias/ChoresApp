@@ -1,0 +1,21 @@
+{% extends 'billing.html' %}
+{% from 'macros.html' import render_form_input_basic %}
+
+{% block billing_body %}
+  <form class='form-horizontal' method="POST" action="/billing/transactions/edit">
+    {{ form.csrf_token }}
+
+    <div class='container' style='max-width:768px'>
+      {{ form.transaction_id() }}
+      {{ render_form_input_basic(form.type, 'fa-cog', 'Type', size = 1) }}
+      {{ render_form_input_basic(form.tenant, 'fa-user', 'Tenant', size=1) }}
+      {{ render_form_input_basic(form.description, 'fa-info-circle', 'Description') }}
+      {{ render_form_input_basic(form.date, 'fa-calendar', 'Date') }}
+      {{ render_form_input_basic(form.amount, 'fa-eur', 'Amount') }}
+      <div class='text-center'>
+        <button type="submit" class="btn btn-default">Save</button>
+        <a href='/billing/transactions' role='button' class="btn btn-default">Cancel</a>
+      </div>
+    </div>
+  </form>
+{% endblock %}

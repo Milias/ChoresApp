@@ -74,6 +74,9 @@
       <a href='/house/bundles/{{ bundle.id }}' role='button' class='btn btn-default'>
         <i class='fa fa-eye'></i>
       </a>
+      <a href='/house/bundles/tex/{{ bundle.id }}' role='button' class='btn btn-default'>
+        <i class='fa fa-file-code-o'></i>
+      </a>
       <a href='/house/bundles/copy/{{ bundle.id }}' role='button' class='btn btn-default'>
         <i class='fa fa-clone'></i>
       </a>
@@ -128,6 +131,34 @@
     </td>
     <td class='text-center' style='vertical-align:middle'>
       <a href='/house/assignments/del/{{ assignment.assignment_id.data }}/{{ assignment.bundle_id.data }}' role='button' class='btn btn-default'>
+        <i class='fa fa-trash'></i>
+      </a>
+    </td>
+  </tr>
+{% endmacro %}
+
+{% macro render_transaction_view(t_types, transaction) %}
+  <tr>
+    <td class='text-center' style='vertical-align:middle'>
+      {{ t_types[transaction.type][0] }}
+    </td>
+    <td style='vertical-align:middle'>
+      {{ transaction.tenant.name if transaction.tenant }}
+    </td>
+    <td class='text-center' style='vertical-align:middle'>
+      {{ transaction.description }}
+    </td>
+    <td class='text-center' style='vertical-align:middle'>
+      {{ transaction.date }}
+    </td>
+    <td class='text-center' style='vertical-align:middle'>
+      {{ '%.2f' % transaction.amount }} <i class='fa fa-eur'></i>
+    </td>
+    <td class='text-center' style='vertical-align:middle'>
+      <a href='/billing/transactions/edit/{{ transaction.id }}' role='button' class='btn btn-default'>
+        <i class='fa fa-sliders'></i>
+      </a>
+      <a href='#' role='button' class='btn btn-default'>
         <i class='fa fa-trash'></i>
       </a>
     </td>

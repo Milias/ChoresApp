@@ -1,0 +1,30 @@
+{% extends 'billing.html' %}
+{% from 'macros.html' import render_transaction_view %}
+
+{% block title %} - Billing/Transactions{% endblock %}
+
+{% block billing_body %}
+  <div class='table-responsive center-block' style='max-width:768px'>
+    <table class='table table-condensed table-tenants'>
+      <tr>
+        <td class='text-center' colspan="6">
+          <a href='/billing/transactions/edit' role='button' class='btn btn-default' style='width:85%;'>
+            <i class='fa fa-2x fa-plus'></i>
+          </a>
+        </td>
+      </tr>
+      <tr>
+        <th class='text-center'>Type</th>
+        <th>Name</th>
+        <th class='text-center'>Description</th>
+        <th class='text-center'>Date</th>
+        <th class='text-center'>Amount</th>
+        <th class='text-center'></th>
+      </tr>
+      {% for transaction in transactions %}
+        {{ render_transaction_view(t_types, transaction) }}
+      {% endfor %}
+    </table>
+  </div>
+{% endblock %}
+

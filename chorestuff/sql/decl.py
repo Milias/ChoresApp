@@ -6,6 +6,20 @@ class TransactionType(enum.Enum):
   bill = 4
   other = 8
 
+TransactionTypeDict = {
+  1: TransactionType.expense,
+  2: TransactionType.payment,
+  4: TransactionType.bill,
+  8: TransactionType.other
+}
+
+TransactionTypeDictInv = {
+  TransactionType.expense: 1,
+  TransactionType.payment: 2,
+  TransactionType.bill: 4,
+  TransactionType.other: 8
+}
+
 """
   Tenant information
 """

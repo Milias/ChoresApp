@@ -18,7 +18,7 @@ from sqlalchemy import create_engine, exists, and_, func, literal
 import jinja2
 from jinja2 import Template
 
-from flask import g, request, jsonify, redirect, render_template, flash, send_from_directory
+from flask import g, request, jsonify, redirect, render_template, flash, send_from_directory, Response
 from flask_wtf import FlaskForm
 from flask_wtf.csrf import CSRFProtect
 

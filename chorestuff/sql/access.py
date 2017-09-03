@@ -391,6 +391,17 @@ class DataHandler:
 
     return new_transaction
 
+  def GetAllTransactions(self, type = None):
+    return self.session.query(Transaction).order_by(Transaction.date.desc()).all()
+
+  def GetTransaction(self, id):
+    transaction = self.session.query(Transaction).filter(Transaction.id == id).first()
+
+    if transaction == None:
+      print('Warning getting transaction: id not found.')
+
+    return transaction
+
   """
     Bank account manipulation
   """
