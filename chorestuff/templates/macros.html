@@ -65,10 +65,20 @@
   </tr>
 {% endmacro %}
 
-{% macro render_bundle_list(dh, bundle) %}
-  <tr>
+{% macro render_bundle_list(dh, bundle, chosen_bundle) %}
+  <tr class="{{ ('bg-primary' if chosen_bundle.id == bundle.id else '') if chosen_bundle else '' }}">
     <td style='vertical-align:middle'>
+    {%- if chosen_bundle -%}
+      {%- if chosen_bundle.id == bundle.id -%}
+        <b>{{ 'y%dw%d' % bundle.date.isocalendar()[:2] }}</b>
+      {%- endif -%}
+      {%- if chosen_bundle.id != bundle.id -%}
+        {{ 'y%dw%d' % bundle.date.isocalendar()[:2] }}
+      {%- endif -%}
+    {%- endif -%}
+    {%- if not chosen_bundle -%}
       {{ 'y%dw%d' % bundle.date.isocalendar()[:2] }}
+    {%- endif -%}
     </td>
     <td class='text-center' style='vertical-align:middle'>
       <a href='/house/bundles/{{ bundle.id }}' role='button' class='btn btn-default'>
@@ -161,6 +171,62 @@
       <a href='#' role='button' class='btn btn-default'>
         <i class='fa fa-trash'></i>
       </a>
+    </td>
+  </tr>
+{% endmacro %}
+
+{% macro render_bill_list(bill) %}
+  <tr>
+    <td class='text-center' style='vertical-align:middle'>
+      {{ bill.begin_date }}
+    </td>
+    <td class='text-center' style='vertical-align:middle'>
+      {{ bill.end_date }}
+    </td>
+    <td class='text-center' style='vertical-align:middle'>
+      {{ '%.2f' % bill.recurring }} <i class='fa fa-eur'></i>
+    </td>
+    <td class='text-center' style='vertical-align:middle'>
+      {{ '%.2f' % bill.shared_expenses }} <i class='fa fa-eur'></i>
+    </td>
+    <td class='text-center' style='vertical-align:middle'>
+      <a href='/billing/bills/{{ bill.id }}' role='button' class='btn btn-default'>
+        <i class='fa fa-eye'></i>
+      </a>
+      <a href='/billing/bills/tex/{{ bill.id }}' role='button' class='btn btn-default'>
+        <i class='fa fa-file-code-o'></i>
+      </a>
+      <a href='/billing/bills/edit/{{ bill.id }}' role='button' class='btn btn-default'>
+        <i class='fa fa-sliders'></i>
+      </a>
+      <a href='/billing/bills/del/{{ bill.id }}' role='button' class='btn btn-default delete-bundle'>
+        <i class='fa fa-trash'></i>
+      </a>
+    </td>
+  </tr>
+{% endmacro %}
+
+{% macro render_bill_entry_form(entry) %}
+  <tr>
+    <td style='vertical-align:middle'>
+      {{ entry.tenant.name if entry.tenant }}
+    </td>
+    <td class='text-center' style='vertical-align:middle'>
+      {{ '%.2f' % entry.contribution }} <i class='fa fa-eur'></i>
+    </td>
+    <td class='text-center' style='vertical-align:middle'>
+      {{ '%.2f' % entry.p_expenses }} <i class='fa fa-eur'></i>
+    </td>
+    <td class='text-center' style='vertical-align:middle'>
+      {{ '%.2f' % entry.cleaning }} <i class='fa fa-eur'></i>
+    </td>
+    <td class='text-center' style='vertical-align:middle'>
+      {{ '%.2f' % entry.discount }} <i class='fa fa-eur'></i>
+    </td>
+    <td class='text-center' style='vertical-align:middle'>
+      {{ '%.2f' % entry.subtotal }} <i class='fa fa-eur'></i>
+    </td>
+    <td>
     </td>
   </tr>
 {% endmacro %}

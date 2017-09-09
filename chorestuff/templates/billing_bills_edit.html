@@ -1,0 +1,86 @@
+{% extends 'billing.html' %}
+{% from 'macros.html' import render_bill_entry_form %}
+
+{% block billing_body %}
+  <form class='form-horizontal' method="POST" action="/billing/bills/edit{{ '/%d' % bill.id if bill else '' }}">
+    {{ form.csrf_token }}
+
+    <div class='container' style='max-width:1024px'>
+      <div class='text-center'>
+        <button type="submit" class="btn btn-default">{{ 'Update' if bill else 'Save' }}</button>
+        <a href='/billing/bills' role='button' class="btn btn-default">Cancel</a>
+      </div>
+      <div class='row'>
+        <div class='col-sm-4 col-sm-offset-4'>
+          <div class='input-group'>
+            <i class="input-group-addon">
+              <i class='fa fa-fw fa-calendar'></i>
+            </i>
+            <i class='sr-only'>{{ form.begin_date.label }}</i>
+            {{ form.begin_date(class='form-control') }}
+            <i class='sr-only'>{{ form.end_date.label }}</i>
+            {{ form.end_date(class='form-control') }}
+          </div>
+        </div>
+      </div>
+      <div class='row'>
+        <div class='col-sm-4 col-sm-offset-4'>
+          <div class='input-group'>
+            <i class="input-group-addon">
+              <i class='fa fa-fw fa-dollar'></i>
+            </i>
+            <i class='sr-only'>{{ form.recurring.label }}</i>
+            {{ form.recurring(class='form-control',placeholder='Recurring') }}
+          </div>
+        </div>
+      </div>
+      {%- if bill -%}
+      <div class='row'>
+        <div class='col-sm-12'>
+          <div class='table-responsive center-block'>
+            <table class='table table-condensed table-tenants'>
+              <tr>
+                <th>Name</th>
+                <th class='text-center'>Contribution</th>
+                <th class='text-center'>Personal expenses</th>
+                <th class='text-center'>Cleaning</th>
+                <th class='text-center'>Discount</th>
+                <th class='text-center'>Subtotal</th>
+                <th></th>
+              </tr>
+              {%- for entry in sorted_bill_entries -%}
+                {{ render_bill_entry_form(entry) }}
+              {%- endfor -%}
+              <tr>
+                <td>
+                  <b><i>Total</i></b>
+                </td>
+                <td class='text-center' style='vertical-align:middle'>
+                  <!-- Contribution -->
+                </td>
+                <td class='text-center' style='vertical-align:middle'>
+                  <!-- Personal expenses -->
+                  <i>{{ '%.2f' % bill.shared_expenses }}</i> <i class='fa fa-eur'></i>
+                </td>
+                <td class='text-center' style='vertical-align:middle'>
+                  <!-- Cleaning -->
+                </td>
+                <td class='text-center' style='vertical-align:middle'>
+                  <!-- Discount -->
+                </td>
+                <td class='text-center' style='vertical-align:middle'>
+                  <!-- Subtotal -->
+                </td>
+                <td class='text-center' style='vertical-align:middle'>
+                  <!-- Buttons -->
+                </td>
+              </tr>
+            </table>
+          </div>
+        </div>
+      </div>
+      {%- endif -%}
+    </div>
+  </form>
+{% endblock %}
+

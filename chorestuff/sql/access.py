@@ -299,7 +299,7 @@ class DataHandler:
       # Then, we add any other bills in this time range.
       last_bill_entry = self.session.query(BillEntry).filter(BillEntry.tenant == tenant).order_by(BillEntry.date.desc()).first()
 
-      new_bill_entries[tenant.id] = BillEntry(added = datetime.now(), date = new_bill.end_date, tenant = tenant, bill = new_bill)
+      new_bill_entries[tenant.id] = BillEntry(added = datetime.now(), date = new_bill.end_date, tenant = tenant, bill = new_bill, p_expenses = 0.0)
 
       # Add entry to session.
       self.session.add(new_bill_entries[tenant.id])
@@ -322,7 +322,7 @@ class DataHandler:
       for assignment in bundle.assignments:
         # Add chore value if tenant is home (and it's defined).
         if assignment.is_tenant_home and assignment.tenant and assignment.chore:
-          new_bill_entries[assignment.tenant.id].cleaning += assignment.chore.value
+          new_bill_entries[assignment.tenant.id].cleaning += 2.5
 
         # Add completed chores' values.
         for completion in assignment.completions:
@@ -369,17 +369,36 @@ class DataHandler:
       balance += last_bill.total
 
     # Add any extra transaction bills since the last actual bill, or since beginning of time.
-    bills = self.session.query(Transaction).filter(and_(Transaction.date.between(last_bill.end_date if last_bill else date(year=1970, month=1, day=1), date.today()), Transaction.type == TransactionType.bill)).all()
+    bills = self.session.query(Transaction).filter(and_(Transaction.date.between(last_bill.end_date if last_bill else date(year=1970, month=1, day=1), date.today()), Transaction.type == TransactionType.bill, Transaction.tenant == tenant)).all()
 
     balance += sum([bill.amount for bill in bills])
 
     # Add payments made since then.
     # If there is no previous bill, considering everything since the beginning of time.
-    payments = self.session.query(Transaction).filter(and_(Transaction.date.between(last_bill.end_date if last_bill else date(year=1970, month=1, day=1), date.today()), Transaction.type == TransactionType.payment)).all()
+    payments = self.session.query(Transaction).filter(and_(Transaction.date.between(last_bill.end_date if last_bill else date(year=1970, month=1, day=1), date.today()), Transaction.type == TransactionType.payment, Transaction.tenant == tenant)).all()
 
     balance -= sum([payment.amount for payment in payments])
 
     return balance
+
+  def GetAllBills(self):
+    return self.session.query(Bill).order_by(Bill.end_date.desc()).all()
+
+  def GetBill(self, id):
+    bill = self.session.query(Bill).filter(Bill.id == id).first()
+
+    if bill == None:
+      print('Warning getting bill: id not found.')
+
+    return bill
+
+  def RemoveBill(self, id):
+    bill = self.session.query(Bill).filter(Bill.id == id).first()
+
+    for entry in bill.entries:
+      self.session.delete(entry)
+
+    if bill: self.session.delete(bill)
 
   """
     Transaction manipulation
@@ -390,6 +409,11 @@ class DataHandler:
     self.session.add(new_transaction)
 
     return new_transaction
+
+  def RemoveTransaction(self, id):
+    transaction = self.session.query(Transaction).filter(Transaction.id == id).first()
+
+    if transaction: self.session.delete(transaction)
 
   def GetAllTransactions(self, type = None):
     return self.session.query(Transaction).order_by(Transaction.date.desc()).all()

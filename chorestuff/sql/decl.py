@@ -133,6 +133,7 @@ class Bill(Base):
   end_date = Column(Date)
 
   recurring = Column(Float, default = 0.0)
+  # Total, has to be divided by number of entries.
   shared_expenses = Column(Float, default = 0.0)
 
   bank_account_id = Column(Integer, ForeignKey('bank_accounts.id'))

@@ -143,7 +143,6 @@ def HouseChoresDelete(chore_id):
 @app.route('/house/bundles/<int:bundle_id>', methods = ('GET', 'POST'))
 def HouseBundles(bundle_id):
   dh = get_session()
-  tex = get_texporter()
   bundles = dh.GetAllAssignmentBundles(sorted = True)
 
   chosen_bundle = None
@@ -154,9 +153,6 @@ def HouseBundles(bundle_id):
   if chosen_bundle:
     # Sort assignments by tenants' names and put (anyone) at the end.
     chosen_bundle.assignments.sort(key = lambda a: a.tenant.name if a.tenant else 'zzzzzz')
-
-    tex_str = tex.NewAssignmentsBundle(chosen_bundle)
-
   return render_template('house_bundles.html', dh = dh, bundles = bundles, chosen_bundle = chosen_bundle)
 
 @app.route('/house/bundles/tex/<int:bundle_id>', methods = ('GET', 'POST'))

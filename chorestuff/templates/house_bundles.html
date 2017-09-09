@@ -21,7 +21,7 @@
               </td>
             </tr>
             {% for bundle in bundles %}
-              {{ render_bundle_list(dh, bundle) }}
+              {{ render_bundle_list(dh, bundle, chosen_bundle) }}
             {% endfor %}
           </table>
         </div>

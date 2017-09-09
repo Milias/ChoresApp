@@ -1,0 +1,29 @@
+{% extends 'billing.html' %}
+{% from 'macros.html' import render_bill_list %}
+
+{% block title %} - Billing/Bills{% endblock %}
+
+{% block billing_body %}
+  <div class='table-responsive center-block' style='max-width:768px'>
+    <table class='table table-condensed table-tenants'>
+      <tr>
+        <td class='text-center' colspan="6">
+          <a href='/billing/bills/edit' role='button' class='btn btn-default' style='width:85%;'>
+            <i class='fa fa-2x fa-plus'></i>
+          </a>
+        </td>
+      </tr>
+      <tr>
+        <th class='text-center'>Start date</th>
+        <th class='text-center'>End date</th>
+        <th class='text-center'>Recurring</th>
+        <th class='text-center'>Shared</th>
+        <th class='text-center'></th>
+      </tr>
+      {% for bill in bills %}
+        {{ render_bill_list(bill) }}
+      {% endfor %}
+    </table>
+  </div>
+{% endblock %}
+
