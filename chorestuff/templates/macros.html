@@ -190,11 +190,14 @@
       {{ '%.2f' % bill.shared_expenses }} <i class='fa fa-eur'></i>
     </td>
     <td class='text-center' style='vertical-align:middle'>
-      <a href='/billing/bills/{{ bill.id }}' role='button' class='btn btn-default'>
+      <a href='/billing/bills/view/{{ bill.id }}' role='button' class='btn btn-default'>
         <i class='fa fa-eye'></i>
       </a>
       <a href='/billing/bills/tex/{{ bill.id }}' role='button' class='btn btn-default'>
         <i class='fa fa-file-code-o'></i>
+      </a>
+      <a href='/billing/bills/add/{{ bill.id }}' role='button' class='btn btn-default'>
+        <i class='fa fa-send-o'></i>
       </a>
       <a href='/billing/bills/edit/{{ bill.id }}' role='button' class='btn btn-default'>
         <i class='fa fa-sliders'></i>
@@ -227,6 +230,48 @@
       {{ '%.2f' % entry.subtotal }} <i class='fa fa-eur'></i>
     </td>
     <td>
+    </td>
+  </tr>
+{% endmacro %}
+
+{% macro render_bill_entry_view(entry) %}
+  <tr>
+    <td style='vertical-align:middle'>
+      {{ entry.tenant.name if entry.tenant }}
+    </td>
+
+    {%- if entry.tenant.is_living -%}
+    <td class='text-center' style='vertical-align:middle'>
+      {{ '%.2f' % entry.contribution }} <i class='fa fa-eur'></i>
+    </td>
+    <td class='text-center' style='vertical-align:middle'>
+      {{ '%.2f' % entry.p_expenses }} <i class='fa fa-eur'></i>
+    </td>
+    <td class='text-center' style='vertical-align:middle'>
+      {{ '%.2f' % entry.cleaning }} <i class='fa fa-eur'></i>
+    </td>
+    <td class='text-center' style='vertical-align:middle'>
+      {{ '%.2f' % entry.discount }} <i class='fa fa-eur'></i>
+    </td>
+    <td class='text-center' style='vertical-align:middle'>
+      {{ '%.2f' % entry.subtotal }} <i class='fa fa-eur'></i>
+    </td>
+    {%- else %}
+    <td></td>
+    <td></td>
+    <td></td>
+    <td></td>
+    <td></td>
+    {% endif -%}
+
+    <td class='text-center' style='vertical-align:middle'>
+      {{ '%.2f' % entry.prev_debt }} <i class='fa fa-eur'></i>
+    </td>
+    <td class='text-center' style='vertical-align:middle'>
+      {{ '%.2f' % entry.paid }} <i class='fa fa-eur'></i>
+    </td>
+    <td class='text-center' style='vertical-align:middle'>
+      <i>{{ '%.2f' % entry.total }}</i> <i class='fa fa-eur'></i>
     </td>
   </tr>
 {% endmacro %}

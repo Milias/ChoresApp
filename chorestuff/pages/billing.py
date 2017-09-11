@@ -10,10 +10,13 @@ class FormEditTransaction(RedirectForm):
   date = DateField('Date:', default = lambda: date.today() - timedelta(days=date.today().isocalendar()[2] - 1), validators = [InputRequired()])
   amount = DecimalField('Amount:', places = 2, validators=[InputRequired()])
 
+class FormExpenses(RedirectForm):
+  begin_date = DateField('Start date:', default = lambda: date.today(), validators = [InputRequired()])
+  end_date = DateField('End date:', default = lambda: date.today() + timedelta(weeks=8), validators = [InputRequired()])
+
 class FormEditBill(RedirectForm):
   bill_id = HiddenField('Id:')
 
-  save_bill = BooleanField('Save bill: ', default=False)
   begin_date = DateField('Start date:', default = lambda: date.today() - timedelta(weeks=8), validators = [InputRequired()])
   end_date = DateField('End date:', default = lambda: date.today(), validators = [InputRequired()])
   recurring = DecimalField('Recurring:', places = 2, validators=[InputRequired()])
@@ -81,6 +84,23 @@ def BillingTransactionsDelete(transaction_id):
 
   return redirect('/billing/transactions')
 
+@app.route('/billing/expenses', methods = ('GET', 'POST'))
+def BillingExpenses():
+  dh = get_session()
+  form = FormExpenses()
+  tex = get_texporter()
+
+  if form.validate_on_submit():
+    tex_str = tex.NewExpensesTable(form.begin_date.data, form.end_date.data)
+
+    return Response(
+      tex_str,
+      mimetype='application/x-latex',
+      headers={'Content-disposition': 'attachment; filename=expenses_%s_%s.tex' % (form.begin_date.data, form.end_date.data)}
+    )
+
+  return render_template('billing_expenses.html', form = form)
+
 @app.route('/billing/bills', methods = ('GET', 'POST'))
 def BillingBills():
   dh = get_session()
@@ -119,6 +139,39 @@ def BillingBillsEdit(bill_id):
       flash('%s: %s' % (field.name, error), 'warning')
 
   return render_template('billing_bills_edit.html', form = form, bill = bill, sorted_bill_entries = sorted_bill_entries)
+
+@app.route('/billing/bills/view', defaults = {'bill_id': 0}, methods = ('GET', 'POST'))
+@app.route('/billing/bills/view/<int:bill_id>', methods = ('GET', 'POST'))
+def BillingBillsView(bill_id):
+  dh = get_session()
+
+  bill = None
+  sorted_bill_entries = []
+  if bill_id:
+    bill = dh.GetBill(bill_id)
+
+    if len(bill.entries):
+      sorted_bill_entries.extend([e for e in bill.entries])
+      sorted_bill_entries.sort(key = lambda a: a.tenant.name if a.tenant else 'zzzzzz')
+
+  return render_template('billing_bills_view.html', bill = bill, sorted_bill_entries = sorted_bill_entries)
+
+@app.route('/billing/bills/tex/<int:bill_id>', methods = ('GET', 'POST'))
+def BillingBillsTex(bill_id):
+  dh = get_session()
+  tex = get_texporter()
+
+  bill = dh.GetBill(bill_id)
+
+  sorted_bill_entries = [entry for entry in bill.entries]
+  sorted_bill_entries.sort(key = lambda a: a.tenant.name if a.tenant else 'zzzzzz')
+  tex_str = tex.NewBill(bill)
+
+  return Response(
+    tex_str,
+    mimetype='application/x-latex',
+    headers={'Content-disposition': 'attachment; filename=bill_%s_%s.tex' % (bill.begin_date, bill.end_date)}
+  )
 
 @app.route('/billing/bills/del/<int:bill_id>')
 def BillingBillsDelete(bill_id):

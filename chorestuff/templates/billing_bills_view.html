@@ -1,0 +1,43 @@
+{% extends 'billing.html' %}
+{% from 'macros.html' import render_bill_entry_view %}
+
+{% block billing_body %}
+  <div class='container' style='max-width:1024px'>
+    <div class='row'>
+      <div class='col-sm-4 col-sm-offset-4'>
+          <i class='fa fa-fw fa-calendar'></i>
+          {{ bill.begin_date }}
+          {{ bill.end_date }}
+          {{ bill.recurring }}
+          {{ bill.shared_expenses }}
+        </div>
+      </div>
+    </div>
+    <div class='row'>
+      <div class='col-sm-8 col-sm-offset-2'>
+        <div class='table-responsive center-block'>
+          <table class='table table-condensed table-tenants'>
+            <tr>
+              <th>Name</th>
+              <th class='text-center'>Contribution</th>
+              <th class='text-center'>Personal expenses</th>
+              <th class='text-center'>Cleaning</th>
+              <th class='text-center'>Discount</th>
+              <th class='text-center'>Subtotal</th>
+              <th class='text-center'>Previous debt</th>
+              <th class='text-center'>Paid</th>
+              <th class='text-center'>Total</th>
+            </tr>
+            {%- for entry in sorted_bill_entries if entry.tenant.is_living -%}
+              {{ render_bill_entry_view(entry) }}
+            {%- endfor -%}
+            {%- for entry in sorted_bill_entries if not entry.tenant.is_living -%}
+              {{ render_bill_entry_view(entry) }}
+            {%- endfor -%}
+          </table>
+        </div>
+      </div>
+    </div>
+  </div>
+{% endblock %}
+

@@ -1,0 +1,26 @@
+{% extends 'billing.html' %}
+
+{% block title %} - Billing/Expenses{% endblock %}
+
+{% block billing_body %}
+<form class='form-horizontal' method="POST" action="/billing/expenses">
+  {{ form.csrf_token }}
+
+  <div class='container' style='max-width:768px'>
+    <div class='input-group'>
+      <i class="input-group-addon">
+        <i class='fa fa-fw fa-calendar'></i>
+      </i>
+      <i class='sr-only'>{{ form.begin_date.label }}</i>
+      {{ form.begin_date(class='form-control') }}
+      <i class='sr-only'>{{ form.end_date.label }}</i>
+      {{ form.end_date(class='form-control') }}
+    </div>
+
+    <div class='text-center'>
+      <button type="submit" class="btn btn-default">Generate</button>
+    </div>
+  </div>
+</form>
+{% endblock %}
+

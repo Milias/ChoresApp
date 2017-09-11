@@ -178,7 +178,7 @@ def HouseBundlesTex(bundle_id):
   return Response(
     tex_str,
     mimetype='application/x-latex',
-    headers={'Content-disposition': 'attachment; filename=y%dw%d.tex' % bundle.date.isocalendar()[:2]}
+    headers={'Content-disposition': 'attachment; filename=chores_y%dw%d.tex' % bundle.date.isocalendar()[:2]}
   )
 
 @app.route('/house/bundles/copy/<int:bundle_id>', methods = ('GET', 'POST'))

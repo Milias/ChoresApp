@@ -277,6 +277,7 @@ class DataHandler:
 
     self.session.add(new_bill)
     self.InitBillEntries(new_bill)
+    self.AddNonLivingTenants(new_bill)
     return new_bill
 
   def InitBillEntries(self, new_bill):
@@ -297,7 +298,7 @@ class DataHandler:
       # Previous debt: get the bill entry for this tenant, associated with
       # the latest bill by date.
       # Then, we add any other bills in this time range.
-      last_bill_entry = self.session.query(BillEntry).filter(BillEntry.tenant == tenant).order_by(BillEntry.date.desc()).first()
+      prev_bill = self.session.query(Transaction).filter(and_(Transaction.date <= new_bill.begin_date, Transaction.type == TransactionType.bill, Transaction.tenant == tenant)).first()
 
       new_bill_entries[tenant.id] = BillEntry(added = datetime.now(), date = new_bill.end_date, tenant = tenant, bill = new_bill, p_expenses = 0.0)
 
@@ -305,8 +306,7 @@ class DataHandler:
       self.session.add(new_bill_entries[tenant.id])
 
       # Add last debts.
-      new_bill_entries[tenant.id].prev_debt = last_bill_entry.total if last_bill_entry else 0.0
-      new_bill_entries[tenant.id].prev_debt += sum([transaction.amount for transaction in bill_transactions])
+      new_bill_entries[tenant.id].prev_debt = prev_bill.amount if prev_bill else 0.0
 
       # Compute payments.
       new_bill_entries[tenant.id].paid = -sum([transaction.amount for transaction in payments])
@@ -353,6 +353,22 @@ class DataHandler:
 
     return new_bill_entries
 
+  def AddNonLivingTenants(self, new_bill):
+    non_living_tenants = self.session.query(Tenant).filter(Tenant.is_living == False).all()
+
+    for tenant in non_living_tenants:
+      prev_bill = self.session.query(Transaction).filter(and_(Transaction.date <= new_bill.begin_date, Transaction.type == TransactionType.bill, Transaction.tenant == tenant)).order_by(Transaction.date.desc()).first()
+
+      payments = self.session.query(Transaction).filter(and_(Transaction.date.between(new_bill.begin_date, new_bill.end_date), Transaction.tenant == tenant), Transaction.type == TransactionType.payment).all()
+
+      new_entry = BillEntry(added = datetime.now(), date = new_bill.end_date, tenant = tenant, bill = new_bill, p_expenses = 0.0, contribution = 0.0, cleaning = 0.0, discount = 0.0, subtotal = 0.0)
+
+      new_entry.prev_debt = prev_bill.amount if prev_bill else 0.0
+      new_entry.paid = -sum([payment.amount for payment in payments])
+      new_entry.total = new_entry.prev_debt + new_entry.paid
+
+      self.session.add(new_entry)
+
   def UpdateBillEntries(self, bill):
     # Mainly for updating recurring and shared expenses.
     for entry in bill.entries:
@@ -363,19 +379,13 @@ class DataHandler:
     balance = 0.0
 
     # Get last bill's total.
-    last_bill = self.session.query(BillEntry).filter(BillEntry.tenant == tenant).order_by(BillEntry.date.desc()).first()
+    prev_bill = self.session.query(Transaction).filter(and_(Transaction.date <= date.today(), Transaction.type == TransactionType.bill, Transaction.tenant == tenant)).order_by(Transaction.date.desc()).first()
 
-    if last_bill:
-      balance += last_bill.total
-
-    # Add any extra transaction bills since the last actual bill, or since beginning of time.
-    bills = self.session.query(Transaction).filter(and_(Transaction.date.between(last_bill.end_date if last_bill else date(year=1970, month=1, day=1), date.today()), Transaction.type == TransactionType.bill, Transaction.tenant == tenant)).all()
-
-    balance += sum([bill.amount for bill in bills])
+    balance += prev_bill.amount if prev_bill else 0
 
     # Add payments made since then.
     # If there is no previous bill, considering everything since the beginning of time.
-    payments = self.session.query(Transaction).filter(and_(Transaction.date.between(last_bill.end_date if last_bill else date(year=1970, month=1, day=1), date.today()), Transaction.type == TransactionType.payment, Transaction.tenant == tenant)).all()
+    payments = self.session.query(Transaction).filter(and_(Transaction.date.between(prev_bill.date if prev_bill else date(year=1970, month=1, day=1), date.today()), Transaction.type == TransactionType.payment, Transaction.tenant == tenant)).all()
 
     balance -= sum([payment.amount for payment in payments])
 
