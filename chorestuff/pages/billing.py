@@ -1,6 +1,6 @@
-from ..common import *
-from ..sql import *
-from ..texport import *
+from common import *
+from sql import *
+from texport import *
 
 class FormEditTransaction(RedirectForm):
   transaction_id = HiddenField('Id:')
@@ -172,6 +172,19 @@ def BillingBillsTex(bill_id):
     mimetype='application/x-latex',
     headers={'Content-disposition': 'attachment; filename=bill_%s_%s.tex' % (bill.begin_date, bill.end_date)}
   )
+
+@app.route('/billing/bills/add/<int:bill_id>', methods = ('GET', 'POST'))
+def BillingBillsAdd(bill_id):
+  dh = get_session()
+
+  bill = dh.GetBill(bill_id)
+
+  for entry in bill.entries:
+    dh.AddTransaction(type = TransactionType.bill, date = bill.end_date, amount = entry.total, description = 'Bill %s to %s' % (bill.begin_date, bill.end_date), tenant = entry.tenant)
+
+  flash('Bills published.', 'success')
+
+  return redirect('/billing/bills/')
 
 @app.route('/billing/bills/del/<int:bill_id>')
 def BillingBillsDelete(bill_id):

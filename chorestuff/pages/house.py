@@ -1,6 +1,6 @@
-from ..common import *
-from ..sql import *
-from ..texport import *
+from common import *
+from sql import *
+from texport import *
 
 class FormEditTenant(RedirectForm):
   tenant_id = HiddenField('Id:')

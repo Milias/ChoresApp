@@ -22,6 +22,9 @@ csrf.init_app(app)
 
 parser = argparse.ArgumentParser(description='Chores tracker and bill generator.')
 
+if __name__ == '__main__':
+  app.run(debug = True, host = '0.0.0.0')
+
 def ChoresTable():
   tex = TeXporter.Instance()
   dh = DataHandler.Instance()

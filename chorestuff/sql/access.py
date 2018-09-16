@@ -1,4 +1,4 @@
-from ..common import *
+from common import *
 from .decl import *
 
 @Singleton
@@ -298,7 +298,7 @@ class DataHandler:
       # Previous debt: get the bill entry for this tenant, associated with
       # the latest bill by date.
       # Then, we add any other bills in this time range.
-      prev_bill = self.session.query(Transaction).filter(and_(Transaction.date <= new_bill.begin_date, Transaction.type == TransactionType.bill, Transaction.tenant == tenant)).first()
+      prev_bill = self.session.query(Transaction).filter(and_(Transaction.date <= new_bill.begin_date, Transaction.type == TransactionType.bill, Transaction.tenant == tenant)).order_by(Transaction.date.desc()).first()
 
       new_bill_entries[tenant.id] = BillEntry(added = datetime.now(), date = new_bill.end_date, tenant = tenant, bill = new_bill, p_expenses = 0.0)
 

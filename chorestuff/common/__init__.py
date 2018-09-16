@@ -26,7 +26,7 @@ from wtforms import StringField, PasswordField, HiddenField, TextAreaField, Inte
 from wtforms.fields.html5 import EmailField, DateField
 from wtforms.validators import InputRequired, Email, Optional, Length, EqualTo
 
-from .. import app
+from __main__ import app
 
 csrf = CSRFProtect()
 csrf.init_app(app)
