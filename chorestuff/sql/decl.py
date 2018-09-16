@@ -1,4 +1,4 @@
-from common import *
+from ..common import *
 
 class TransactionType(enum.Enum):
   expense = 1

@@ -1,4 +1,4 @@
-from common import *
+from ..common import *
 
 @Singleton
 class TeXporter:
